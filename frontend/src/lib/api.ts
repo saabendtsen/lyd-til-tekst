@@ -293,3 +293,58 @@ export async function getUsageSummary(): Promise<UsageSummary> {
   });
   return handleResponse<UsageSummary>(res);
 }
+
+// Image Generation
+export interface ImageGeneration {
+  id: number;
+  prompt: string;
+  image_url: string;
+  text_response?: string;
+  turn_number: number;
+  parent_id?: number;
+  created_at: string;
+}
+
+export interface ImageGenerationList {
+  generations: ImageGeneration[];
+  total: number;
+}
+
+export interface GenerateImageRequest {
+  prompt: string;
+  session_id?: number;
+  aspect_ratio?: string;
+  resolution?: string;
+}
+
+export async function generateImage(request: GenerateImageRequest): Promise<ImageGeneration> {
+  const res = await fetch(`${API_BASE}/images/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(request),
+  });
+  return handleResponse<ImageGeneration>(res);
+}
+
+export function getImageDataUrl(id: number): string {
+  return `${API_BASE}/images/${id}/data`;
+}
+
+export async function getImageGenerations(skip = 0, limit = 20): Promise<ImageGenerationList> {
+  const res = await fetch(`${API_BASE}/images/?skip=${skip}&limit=${limit}`, {
+    credentials: 'include',
+  });
+  return handleResponse<ImageGenerationList>(res);
+}
+
+export async function deleteImageGeneration(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/images/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));
+    throw new Error(error.detail);
+  }
+}

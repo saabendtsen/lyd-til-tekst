@@ -61,6 +61,17 @@ journalctl --user -u lyd-til-tekst -f
 - `POST /api/transcriptions/{id}/process` - Kør Gemini
 - `DELETE /api/transcriptions/{id}` - Slet
 
+### Images (Nano Banana Pro)
+- `POST /api/images/generate` - Generer billede fra tekst
+  - `prompt`: Tekst beskrivelse
+  - `session_id`: (valgfri) Tidligere generation ID for multi-turn editing
+  - `aspect_ratio`: 1:1, 16:9, 9:16, 4:3, 3:4
+  - `resolution`: 1k, 2k, 4k
+- `GET /api/images/` - Brugerens billede-historik
+- `GET /api/images/{id}` - Billede metadata
+- `GET /api/images/{id}/data` - Rå billede data (PNG)
+- `DELETE /api/images/{id}` - Slet billede
+
 ## Konfiguration
 
 API keys læses fra `~/.env`:
@@ -78,10 +89,13 @@ SQLite med tabeller:
 - `users` - username, password_hash, email (optional)
 - `sessions` - JWT token tracking
 - `transcriptions` - raw_text, instruction, processed_text
+- `style_guides` - Bruger-definerede stilguides
+- `api_usage` - Cost tracking per bruger
+- `image_generations` - Genererede billeder + multi-turn state
 
 ## Teknologi
 
 - **Backend**: FastAPI, SQLAlchemy, bcrypt, python-jose
 - **Frontend**: Astro, React, TailwindCSS
-- **APIs**: OpenAI Whisper, Google Gemini (dual-tier)
+- **APIs**: OpenAI Whisper, Google Gemini 3 Flash (tekst), Gemini 3 Pro Image (billeder)
 - **Auth**: JWT tokens i httpOnly cookies

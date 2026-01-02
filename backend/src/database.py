@@ -27,6 +27,7 @@ class User(Base):
     transcriptions = relationship("Transcription", back_populates="user")
     style_guides = relationship("StyleGuide", back_populates="user")
     api_usage = relationship("ApiUsage", back_populates="user")
+    image_generations = relationship("ImageGeneration", back_populates="user")
 
 
 class Transcription(Base):
@@ -70,6 +71,30 @@ class StyleGuide(Base):
     user = relationship("User", back_populates="style_guides")
 
 
+class ImageGeneration(Base):
+    """Track image generation sessions for multi-turn editing."""
+    __tablename__ = "image_generations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    transcription_id = Column(Integer, ForeignKey("transcriptions.id"), nullable=True)
+
+    # Prompt and result
+    prompt = Column(Text, nullable=False)  # User's image prompt
+    image_path = Column(String(500), nullable=True)  # Path to generated image
+    image_data = Column(Text, nullable=True)  # Base64 encoded (for small images)
+
+    # Multi-turn state
+    thought_signature = Column(Text, nullable=True)  # For conversational editing
+    turn_number = Column(Integer, default=1)  # Which iteration
+    parent_id = Column(Integer, ForeignKey("image_generations.id"), nullable=True)  # Previous turn
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="image_generations")
+
+
 class ApiUsage(Base):
     """Track API usage and costs per user."""
     __tablename__ = "api_usage"
@@ -87,6 +112,8 @@ class ApiUsage(Base):
     audio_seconds = Column(Float, nullable=True)      # For Whisper
     input_tokens = Column(Integer, nullable=True)     # For Gemini
     output_tokens = Column(Integer, nullable=True)    # For Gemini
+    images_generated = Column(Integer, nullable=True) # For image generation
+    image_resolution = Column(String(10), nullable=True)  # '1k', '2k', '4k'
 
     # Cost (stored in USD)
     cost_usd = Column(Float, nullable=False, default=0.0)
@@ -94,6 +121,7 @@ class ApiUsage(Base):
     # References
     transcription_id = Column(Integer, ForeignKey("transcriptions.id"), nullable=True)
     style_guide_id = Column(Integer, ForeignKey("style_guides.id"), nullable=True)
+    image_generation_id = Column(Integer, ForeignKey("image_generations.id"), nullable=True)
 
     # Timestamp
     created_at = Column(DateTime, default=datetime.utcnow)

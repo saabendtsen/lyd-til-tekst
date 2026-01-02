@@ -14,6 +14,12 @@ PRICING = {
         "gemini-3-flash-preview": {
             "input_per_million": 0.50,   # $0.50 per million input tokens
             "output_per_million": 1.00   # $1.00 per million output tokens
+        },
+        "gemini-3-pro-image-preview": {
+            "input_per_million": 2.00,   # $2.00 per million input tokens
+            "output_per_million": 12.00, # $12.00 per million output tokens
+            "image_output_1k_2k": 0.134, # $0.134 per 1K/2K image (1120 tokens)
+            "image_output_4k": 0.24      # $0.24 per 4K image
         }
     }
 }
@@ -60,6 +66,41 @@ def calculate_gemini_cost(
     input_cost = (input_tokens / 1_000_000) * pricing["input_per_million"]
     output_cost = (output_tokens / 1_000_000) * pricing["output_per_million"]
     return input_cost + output_cost
+
+
+def calculate_image_generation_cost(
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    images_generated: int = 0,
+    resolution: str = "2k",  # "1k", "2k", or "4k"
+    model: str = "gemini-3-pro-image-preview"
+) -> float:
+    """
+    Calculate Gemini image generation cost.
+
+    Args:
+        input_tokens: Number of input tokens (prompt)
+        output_tokens: Number of output tokens (text response)
+        images_generated: Number of images generated
+        resolution: Image resolution ("1k", "2k", or "4k")
+        model: Model name
+
+    Returns:
+        Cost in USD
+    """
+    pricing = PRICING["gemini"].get(model, PRICING["gemini"]["gemini-3-pro-image-preview"])
+
+    # Text token costs
+    input_cost = (input_tokens / 1_000_000) * pricing["input_per_million"]
+    output_cost = (output_tokens / 1_000_000) * pricing["output_per_million"]
+
+    # Image output cost
+    if resolution == "4k":
+        image_cost = images_generated * pricing["image_output_4k"]
+    else:  # 1k or 2k
+        image_cost = images_generated * pricing["image_output_1k_2k"]
+
+    return input_cost + output_cost + image_cost
 
 
 def get_exchange_rate() -> float:

@@ -24,10 +24,13 @@ class UsageResponse(BaseModel):
     audio_seconds: Optional[float] = None
     input_tokens: Optional[int] = None
     output_tokens: Optional[int] = None
+    images_generated: Optional[int] = None
+    image_resolution: Optional[str] = None
     cost_usd: float
     cost_dkk: float
     transcription_id: Optional[int] = None
     style_guide_id: Optional[int] = None
+    image_generation_id: Optional[int] = None
     created_at: datetime
 
     class Config:
@@ -68,10 +71,13 @@ def usage_to_response(usage: ApiUsage) -> UsageResponse:
         audio_seconds=usage.audio_seconds,
         input_tokens=usage.input_tokens,
         output_tokens=usage.output_tokens,
+        images_generated=usage.images_generated,
+        image_resolution=usage.image_resolution,
         cost_usd=usage.cost_usd,
         cost_dkk=usd_to_dkk(usage.cost_usd),
         transcription_id=usage.transcription_id,
         style_guide_id=usage.style_guide_id,
+        image_generation_id=usage.image_generation_id,
         created_at=usage.created_at
     )
 
