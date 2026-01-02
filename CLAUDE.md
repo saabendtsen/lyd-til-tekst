@@ -61,16 +61,23 @@ journalctl --user -u lyd-til-tekst -f
 - `POST /api/transcriptions/{id}/process` - Kør Gemini
 - `DELETE /api/transcriptions/{id}` - Slet
 
-### Images (Nano Banana Pro)
+### Images (Gemini 3 Pro Image / Nano Banana Pro)
 - `POST /api/images/generate` - Generer billede fra tekst
   - `prompt`: Tekst beskrivelse
   - `session_id`: (valgfri) Tidligere generation ID for multi-turn editing
+  - `transcription_id`: (valgfri) Link billede til transskription
   - `aspect_ratio`: 1:1, 16:9, 9:16, 4:3, 3:4
   - `resolution`: 1k, 2k, 4k
 - `GET /api/images/` - Brugerens billede-historik
 - `GET /api/images/{id}` - Billede metadata
 - `GET /api/images/{id}/data` - Rå billede data (PNG)
+- `GET /api/images/transcription/{id}` - Billeder for en transskription
 - `DELETE /api/images/{id}` - Slet billede
+
+**Billedgenerering noter:**
+- Multi-turn editing kræver `thought_signature` (gemmes automatisk)
+- System instruction guider modellen til visuel fortolkning (ikke literal tekst)
+- Stilvalg: fotorealistisk (default), minimalistisk, skitse, filmisk
 
 ## Konfiguration
 
