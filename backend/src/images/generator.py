@@ -18,9 +18,7 @@ IMAGE_MODEL = "gemini-3-pro-image-preview"
 IMAGE_SYSTEM_INSTRUCTION = """You are an image generation assistant. When given text content:
 - Be INSPIRED by the themes, mood, and concepts in the text
 - Create original visual interpretations - do NOT include literal text or quotes from the input
-- Focus on visual metaphors and artistic representation rather than text reproduction
-- Never render written words, sentences, or text from the input directly in the image
-- Interpret the essence and feeling of the content visually"""
+- Focus on visual metaphors and artistic representation rather than text reproduction"""
 
 
 @dataclass
