@@ -14,6 +14,14 @@ from ..config import GEMINI_API_KEY_FREE, GEMINI_API_KEY_PAID
 
 IMAGE_MODEL = "gemini-3-pro-image-preview"
 
+# System instruction for image generation
+IMAGE_SYSTEM_INSTRUCTION = """You are an image generation assistant. When given text content:
+- Be INSPIRED by the themes, mood, and concepts in the text
+- Create original visual interpretations - do NOT include literal text or quotes from the input
+- Focus on visual metaphors and artistic representation rather than text reproduction
+- Never render written words, sentences, or text from the input directly in the image
+- Interpret the essence and feeling of the content visually"""
+
 
 @dataclass
 class ImageGenerationResult:
@@ -105,8 +113,9 @@ def _generate_with_gemini(
         size_map = {"1k": "1K", "2k": "2K", "4k": "4K"}
         image_size = size_map.get(resolution.lower(), "2K")
 
-        # Build config with image modality
+        # Build config with image modality and system instruction
         config = types.GenerateContentConfig(
+            system_instruction=IMAGE_SYSTEM_INSTRUCTION,
             response_modalities=["TEXT", "IMAGE"],
             image_config=types.ImageConfig(
                 aspect_ratio=aspect_ratio,
