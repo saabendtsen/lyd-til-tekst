@@ -7,6 +7,8 @@ import {
 
 interface Props {
   initialPrompt?: string;
+  transcriptionId?: number;
+  savedImages?: Array<{ id: number; prompt: string; image_url: string }>;
 }
 
 const ASPECT_RATIOS = [
@@ -23,28 +25,32 @@ const RESOLUTIONS = [
 ];
 
 const IMAGE_STYLES = [
-  { value: '', label: 'Ingen stil (standard)' },
-  { value: 'photorealistic', label: 'Fotorealistisk' },
-  { value: 'digital art', label: 'Digital kunst' },
-  { value: 'oil painting', label: 'Oliemaleri' },
-  { value: 'watercolor', label: 'Akvarel' },
-  { value: 'minimalist', label: 'Minimalistisk' },
-  { value: 'abstract', label: 'Abstrakt' },
-  { value: 'cartoon', label: 'Tegneserie' },
-  { value: 'sketch', label: 'Skitse' },
-  { value: 'cinematic', label: 'Filmisk' },
+  { value: 'photorealistic', label: 'Fotorealistisk', default: true },
+  { value: 'minimalist', label: 'Minimalistisk', default: false },
+  { value: 'sketch', label: 'Skitse', default: false },
+  { value: 'cinematic', label: 'Filmisk', default: false },
 ];
 
-export default function ImageGenerator({ initialPrompt = '' }: Props) {
+export default function ImageGenerator({ initialPrompt = '', transcriptionId, savedImages = [] }: Props) {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [editPrompt, setEditPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState('1:1');
   const [resolution, setResolution] = useState('2k');
-  const [imageStyle, setImageStyle] = useState('');
+  const [selectedStyles, setSelectedStyles] = useState<string[]>(
+    IMAGE_STYLES.filter(s => s.default).map(s => s.value)
+  );
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
-  const [generations, setGenerations] = useState<ImageGeneration[]>([]);
-  const [showSettings, setShowSettings] = useState(true);
+  const [generations, setGenerations] = useState<ImageGeneration[]>(
+    savedImages.map(img => ({
+      id: img.id,
+      prompt: img.prompt,
+      image_url: img.image_url,
+      turn_number: 1,
+      created_at: ''
+    }))
+  );
+  const [showSettings, setShowSettings] = useState(savedImages.length === 0);
 
   const currentGeneration = generations.length > 0 ? generations[generations.length - 1] : null;
 
@@ -55,10 +61,11 @@ export default function ImageGenerator({ initialPrompt = '' }: Props) {
       return;
     }
 
-    // Prepend style to prompt if selected
-    const fullPrompt = imageStyle && !currentGeneration
-      ? `${imageStyle} style: ${basePrompt}`
-      : basePrompt;
+    // Prepend styles to prompt if selected
+    const stylePrefix = selectedStyles.length > 0 && !currentGeneration
+      ? `${selectedStyles.join(', ')} style: `
+      : '';
+    const fullPrompt = stylePrefix + basePrompt;
 
     setGenerating(true);
     setError('');
@@ -67,6 +74,7 @@ export default function ImageGenerator({ initialPrompt = '' }: Props) {
       const result = await generateImage({
         prompt: fullPrompt,
         session_id: currentGeneration?.id,
+        transcription_id: transcriptionId,
         aspect_ratio: aspectRatio,
         resolution,
       });
@@ -191,17 +199,31 @@ export default function ImageGenerator({ initialPrompt = '' }: Props) {
       {showSettings && (
         <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Billedstil</label>
-            <select
-              value={imageStyle}
-              onChange={(e) => setImageStyle(e.target.value)}
-              className="input"
-              disabled={!!currentGeneration}
-            >
+            <label className="block text-sm text-gray-600 mb-2">Billedstil</label>
+            <div className="flex flex-wrap gap-3">
               {IMAGE_STYLES.map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
+                <label
+                  key={value}
+                  className={`flex items-center gap-2 cursor-pointer ${currentGeneration ? 'opacity-50' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedStyles.includes(value)}
+                    onChange={(e) => {
+                      if (currentGeneration) return;
+                      if (e.target.checked) {
+                        setSelectedStyles([...selectedStyles, value]);
+                      } else {
+                        setSelectedStyles(selectedStyles.filter(s => s !== value));
+                      }
+                    }}
+                    disabled={!!currentGeneration}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{label}</span>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

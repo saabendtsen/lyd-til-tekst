@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import {
   type Transcription,
   type StyleGuide,
+  type ImageGeneration,
   updateTranscription,
   processTranscription,
   getAudioUrl,
   deleteAudio,
   getStyleGuides,
+  getImagesForTranscription,
 } from '../lib/api';
 import ImageGenerator from './ImageGenerator';
 
@@ -30,6 +32,7 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
   const [styleGuides, setStyleGuides] = useState<StyleGuide[]>([]);
   const [selectedStyleGuideId, setSelectedStyleGuideId] = useState<number | undefined>();
   const [showImageGenerator, setShowImageGenerator] = useState(false);
+  const [savedImages, setSavedImages] = useState<ImageGeneration[]>([]);
 
   // Load style guides on mount
   useEffect(() => {
@@ -48,6 +51,23 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
     };
     loadStyleGuides();
   }, []);
+
+  // Load saved images for this transcription
+  useEffect(() => {
+    const loadImages = async () => {
+      try {
+        const images = await getImagesForTranscription(transcription.id);
+        setSavedImages(images);
+        // Auto-show image generator if there are saved images
+        if (images.length > 0) {
+          setShowImageGenerator(true);
+        }
+      } catch {
+        // Ignore errors - images are optional
+      }
+    };
+    loadImages();
+  }, [transcription.id]);
 
   const handleRawTextChange = (value: string) => {
     setRawText(value);
@@ -370,7 +390,15 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
           <p className="text-sm text-gray-600 mb-4">
             Beskriv det billede du ønsker baseret på den bearbejdede tekst. Du kan iterere og lave ændringer.
           </p>
-          <ImageGenerator initialPrompt={processedText} />
+          <ImageGenerator
+            initialPrompt={processedText}
+            transcriptionId={transcription.id}
+            savedImages={savedImages.map(img => ({
+              id: img.id,
+              prompt: img.prompt,
+              image_url: img.image_url
+            }))}
+          />
         </div>
       )}
     </div>

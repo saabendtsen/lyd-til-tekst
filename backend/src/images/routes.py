@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/images", tags=["images"])
 class GenerateImageRequest(BaseModel):
     prompt: str
     session_id: Optional[int] = None  # For multi-turn: previous generation ID
+    transcription_id: Optional[int] = None  # Link to transcription
     aspect_ratio: str = "1:1"  # 1:1, 16:9, 9:16, 4:3, 3:4
     resolution: str = "2k"  # 1k, 2k, 4k
 
@@ -30,6 +31,7 @@ class ImageGenerationResponse(BaseModel):
     text_response: Optional[str] = None
     turn_number: int
     parent_id: Optional[int] = None
+    transcription_id: Optional[int] = None
     created_at: datetime
 
     class Config:
@@ -50,6 +52,7 @@ def generation_to_response(gen: ImageGeneration) -> ImageGenerationResponse:
         text_response=None,  # Could store this if needed
         turn_number=gen.turn_number,
         parent_id=gen.parent_id,
+        transcription_id=gen.transcription_id,
         created_at=gen.created_at
     )
 
@@ -155,7 +158,8 @@ def generate_image_endpoint(
         prompt=request.prompt,
         image_data=result.image_base64,
         turn_number=turn_number,
-        parent_id=parent_id
+        parent_id=parent_id,
+        transcription_id=request.transcription_id
     )
     db.add(generation)
     db.commit()
@@ -241,6 +245,21 @@ def get_generation(
         )
 
     return generation_to_response(generation)
+
+
+@router.get("/transcription/{transcription_id}", response_model=List[ImageGenerationResponse])
+def get_images_for_transcription(
+    transcription_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all images generated for a specific transcription."""
+    generations = db.query(ImageGeneration).filter(
+        ImageGeneration.user_id == user.id,
+        ImageGeneration.transcription_id == transcription_id
+    ).order_by(ImageGeneration.created_at.desc()).all()
+
+    return [generation_to_response(g) for g in generations]
 
 
 @router.get("/", response_model=ImageHistoryResponse)

@@ -302,6 +302,7 @@ export interface ImageGeneration {
   text_response?: string;
   turn_number: number;
   parent_id?: number;
+  transcription_id?: number;
   created_at: string;
 }
 
@@ -313,6 +314,7 @@ export interface ImageGenerationList {
 export interface GenerateImageRequest {
   prompt: string;
   session_id?: number;
+  transcription_id?: number;
   aspect_ratio?: string;
   resolution?: string;
 }
@@ -347,4 +349,11 @@ export async function deleteImageGeneration(id: number): Promise<void> {
     const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));
     throw new Error(error.detail);
   }
+}
+
+export async function getImagesForTranscription(transcriptionId: number): Promise<ImageGeneration[]> {
+  const res = await fetch(`${API_BASE}/images/transcription/${transcriptionId}`, {
+    credentials: 'include',
+  });
+  return handleResponse<ImageGeneration[]>(res);
 }
