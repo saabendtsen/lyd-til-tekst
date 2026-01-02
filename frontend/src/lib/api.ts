@@ -73,6 +73,7 @@ export interface Transcription {
   raw_text: string;
   instruction?: string;
   processed_text?: string;
+  has_audio: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -121,12 +122,17 @@ export async function updateTranscription(id: number, rawText: string): Promise<
   return handleResponse<Transcription>(res);
 }
 
-export async function processTranscription(id: number, instruction: string): Promise<Transcription> {
+export async function processTranscription(id: number, instruction: string, styleGuideId?: number): Promise<Transcription> {
+  const body: { instruction: string; style_guide_id?: number } = { instruction };
+  if (styleGuideId) {
+    body.style_guide_id = styleGuideId;
+  }
+
   const res = await fetch(`${API_BASE}/transcriptions/${id}/process`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ instruction }),
+    body: JSON.stringify(body),
   });
   return handleResponse<Transcription>(res);
 }
@@ -140,4 +146,150 @@ export async function deleteTranscription(id: number): Promise<void> {
     const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));
     throw new Error(error.detail);
   }
+}
+
+// Audio
+export function getAudioUrl(id: number): string {
+  return `${API_BASE}/transcriptions/${id}/audio`;
+}
+
+export async function deleteAudio(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/transcriptions/${id}/audio`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));
+    throw new Error(error.detail);
+  }
+}
+
+// Style Guides
+export interface StyleGuide {
+  id: number;
+  name: string;
+  description?: string;
+  examples?: string;
+  guide_content?: string;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getStyleGuides(): Promise<StyleGuide[]> {
+  const res = await fetch(`${API_BASE}/settings/style-guides`, {
+    credentials: 'include',
+  });
+  return handleResponse<StyleGuide[]>(res);
+}
+
+export async function createStyleGuide(name: string, description?: string, examples?: string): Promise<StyleGuide> {
+  const res = await fetch(`${API_BASE}/settings/style-guides`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ name, description, examples }),
+  });
+  return handleResponse<StyleGuide>(res);
+}
+
+export async function getStyleGuide(id: number): Promise<StyleGuide> {
+  const res = await fetch(`${API_BASE}/settings/style-guides/${id}`, {
+    credentials: 'include',
+  });
+  return handleResponse<StyleGuide>(res);
+}
+
+export async function updateStyleGuide(
+  id: number,
+  data: { name?: string; description?: string; examples?: string; guide_content?: string }
+): Promise<StyleGuide> {
+  const res = await fetch(`${API_BASE}/settings/style-guides/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  return handleResponse<StyleGuide>(res);
+}
+
+export async function deleteStyleGuide(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/settings/style-guides/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));
+    throw new Error(error.detail);
+  }
+}
+
+export async function generateStyleGuide(id: number): Promise<StyleGuide> {
+  const res = await fetch(`${API_BASE}/settings/style-guides/${id}/generate`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return handleResponse<StyleGuide>(res);
+}
+
+export async function setDefaultStyleGuide(id: number): Promise<StyleGuide> {
+  const res = await fetch(`${API_BASE}/settings/style-guides/${id}/default`, {
+    method: 'PUT',
+    credentials: 'include',
+  });
+  return handleResponse<StyleGuide>(res);
+}
+
+// Usage tracking
+export interface UsageRecord {
+  id: number;
+  provider: string;
+  model: string;
+  operation: string;
+  api_tier?: string;
+  audio_seconds?: number;
+  input_tokens?: number;
+  output_tokens?: number;
+  cost_usd: number;
+  cost_dkk: number;
+  transcription_id?: number;
+  style_guide_id?: number;
+  created_at: string;
+}
+
+export interface OperationSummary {
+  operation: string;
+  count: number;
+  total_cost_usd: number;
+  total_cost_dkk: number;
+}
+
+export interface MonthlySummary {
+  month: string;
+  count: number;
+  total_cost_usd: number;
+  total_cost_dkk: number;
+}
+
+export interface UsageSummary {
+  total_cost_usd: number;
+  total_cost_dkk: number;
+  exchange_rate: number;
+  total_requests: number;
+  by_operation: OperationSummary[];
+  by_month: MonthlySummary[];
+}
+
+export async function getUsage(skip = 0, limit = 100): Promise<UsageRecord[]> {
+  const res = await fetch(`${API_BASE}/usage?skip=${skip}&limit=${limit}`, {
+    credentials: 'include',
+  });
+  return handleResponse<UsageRecord[]>(res);
+}
+
+export async function getUsageSummary(): Promise<UsageSummary> {
+  const res = await fetch(`${API_BASE}/usage/summary`, {
+    credentials: 'include',
+  });
+  return handleResponse<UsageSummary>(res);
 }

@@ -25,7 +25,7 @@ WHISPER_LANGUAGE = "da"
 # Gemini (dual-tier)
 GEMINI_API_KEY_FREE = os.getenv("GEMINI_API_KEY_FREE") or os.getenv("GEMINI_API_KEY")
 GEMINI_API_KEY_PAID = os.getenv("GEMINI_API_KEY_PAID") or os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
 
 # Server
 HOST = os.getenv("LYD_TIL_TEKST_HOST", "127.0.0.1")

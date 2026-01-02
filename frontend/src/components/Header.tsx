@@ -3,7 +3,7 @@ import { logout } from '../lib/api';
 interface Props {
   username: string;
   basePath: string;
-  currentPage: 'app' | 'history';
+  currentPage: 'app' | 'history' | 'settings';
 }
 
 export default function Header({ username, basePath, currentPage }: Props) {
@@ -42,6 +42,16 @@ export default function Header({ username, basePath, currentPage }: Props) {
               }`}
             >
               Historik
+            </a>
+            <a
+              href={`${basePath}settings`}
+              className={`text-sm ${
+                currentPage === 'settings'
+                  ? 'text-blue-600 font-medium'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Indstillinger
             </a>
             <div className="w-px h-4 bg-gray-300" />
             <button
