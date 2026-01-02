@@ -1,0 +1,18 @@
+name: lyd-til-tekst-backend
+status: active
+type: service
+description: "FastAPI backend med auth, Whisper og Gemini integration"
+
+critical_paths:
+  - src/main.py
+  - src/auth/
+  - src/transcription/
+
+safe_to_delete:
+  - "*.log"
+  - "__pycache__/"
+  - "*.pyc"
+  - "venv/"
+  - "data/*.db"
+
+dependencies: []

@@ -1,0 +1,41 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  requireAuth?: boolean;
+}
+
+const { title, requireAuth = false } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Upload lydfil og få tekst tilbage. Simpelt diktat-værktøj." />
+    <link rel="icon" type="image/svg+xml" href={`${basePath}favicon.svg`} />
+    <title>{title} | Lyd til Tekst</title>
+  </head>
+  <body class="min-h-screen bg-gray-50">
+    <slot />
+
+    {requireAuth && (
+      <script is:inline define:vars={{ basePath }}>
+        // Check auth on page load
+        (async () => {
+          try {
+            const res = await fetch(`${basePath}api/auth/me`, { credentials: 'include' });
+            if (!res.ok) {
+              window.location.href = `${basePath}`;
+            }
+          } catch {
+            window.location.href = `${basePath}`;
+          }
+        })();
+      </script>
+    )}
+  </body>
+</html>

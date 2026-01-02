@@ -1,0 +1,16 @@
+name: lyd-til-tekst-frontend
+status: active
+type: website
+description: "Astro frontend med React components og TailwindCSS"
+
+critical_paths:
+  - src/pages/
+  - src/components/
+  - astro.config.mjs
+
+safe_to_delete:
+  - "node_modules/"
+  - ".astro/"
+  - "dist/"
+
+dependencies: []

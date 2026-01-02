@@ -1,0 +1,14 @@
+[Unit]
+Description=Lyd til Tekst - Diktat værktøj
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/saabendtsen/projects/lyd-til-tekst/backend
+ExecStart=/home/saabendtsen/projects/lyd-til-tekst/backend/venv/bin/uvicorn src.main:app --host 127.0.0.1 --port 8090
+Restart=always
+RestartSec=5
+Environment=PATH=/home/saabendtsen/projects/lyd-til-tekst/backend/venv/bin:/usr/bin
+
+[Install]
+WantedBy=default.target

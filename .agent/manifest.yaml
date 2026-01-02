@@ -1,0 +1,20 @@
+name: lyd-til-tekst
+status: active
+type: service
+description: "Diktat-værktøj: Upload lydfil → Whisper transskription → Gemini bearbejdning"
+
+critical_paths:
+  - backend/src/
+  - frontend/src/
+  - docker-compose.yml
+
+safe_to_delete:
+  - "*.log"
+  - "__pycache__/"
+  - "*.pyc"
+  - "node_modules/"
+  - ".astro/"
+  - "dist/"
+
+dependencies:
+  - caddy
