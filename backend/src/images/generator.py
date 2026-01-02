@@ -118,7 +118,7 @@ def _generate_with_gemini(
             for turn in conversation_history:
                 parts = []
                 if turn.text:
-                    parts.append(types.Part.from_text(turn.text))
+                    parts.append(types.Part(text=turn.text))
                 if turn.image_base64:
                     # Include previous image in context
                     parts.append(types.Part.from_bytes(
