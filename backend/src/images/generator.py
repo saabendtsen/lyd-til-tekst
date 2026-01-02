@@ -28,6 +28,8 @@ class ImageGenerationResult:
     output_tokens: int = 0
     images_generated: int = 0
     api_tier: Optional[str] = None
+    # For multi-turn editing
+    thought_signature: Optional[str] = None  # Base64 encoded
 
 
 @dataclass
@@ -37,6 +39,7 @@ class ConversationTurn:
     text: Optional[str] = None
     image_base64: Optional[str] = None
     image_mime_type: Optional[str] = None
+    thought_signature: Optional[str] = None  # Base64 encoded, required for model image parts
 
 
 def generate_image(
@@ -120,11 +123,17 @@ def _generate_with_gemini(
                 if turn.text:
                     parts.append(types.Part(text=turn.text))
                 if turn.image_base64:
-                    # Include previous image in context
-                    parts.append(types.Part.from_bytes(
-                        data=base64.b64decode(turn.image_base64),
-                        mime_type=turn.image_mime_type or "image/png"
-                    ))
+                    # Include previous image with thought_signature for multi-turn
+                    image_part_kwargs = {
+                        "inline_data": types.Blob(
+                            data=base64.b64decode(turn.image_base64),
+                            mime_type=turn.image_mime_type or "image/png"
+                        )
+                    }
+                    # thought_signature is required for model-generated images
+                    if turn.thought_signature:
+                        image_part_kwargs["thought_signature"] = base64.b64decode(turn.thought_signature)
+                    parts.append(types.Part(**image_part_kwargs))
                 if parts:
                     history.append(types.Content(role=turn.role, parts=parts))
 
@@ -153,6 +162,7 @@ def _generate_with_gemini(
         image_base64 = None
         image_mime_type = None
         text_response = None
+        thought_signature = None
         images_count = 0
 
         for part in response.parts:
@@ -161,8 +171,14 @@ def _generate_with_gemini(
                 image_base64 = base64.b64encode(part.inline_data.data).decode('utf-8')
                 image_mime_type = part.inline_data.mime_type
                 images_count += 1
+                # Extract thought_signature for multi-turn (required for editing)
+                if hasattr(part, 'thought_signature') and part.thought_signature:
+                    thought_signature = base64.b64encode(part.thought_signature).decode('utf-8')
             elif part.text:
                 text_response = part.text
+                # Text parts can also have thought_signature
+                if not thought_signature and hasattr(part, 'thought_signature') and part.thought_signature:
+                    thought_signature = base64.b64encode(part.thought_signature).decode('utf-8')
 
         if not image_base64:
             return ImageGenerationResult(
@@ -182,7 +198,8 @@ def _generate_with_gemini(
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             images_generated=images_count,
-            api_tier=tier
+            api_tier=tier,
+            thought_signature=thought_signature
         )
 
     except Exception as e:

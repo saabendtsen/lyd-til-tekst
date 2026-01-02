@@ -97,7 +97,8 @@ def build_conversation_history(
             history.append(ConversationTurn(
                 role="model",
                 image_base64=gen.image_data,
-                image_mime_type="image/png"
+                image_mime_type="image/png",
+                thought_signature=gen.thought_signature  # Required for multi-turn
             ))
 
     return history
@@ -157,6 +158,7 @@ def generate_image_endpoint(
         user_id=user.id,
         prompt=request.prompt,
         image_data=result.image_base64,
+        thought_signature=result.thought_signature,  # Required for multi-turn editing
         turn_number=turn_number,
         parent_id=parent_id,
         transcription_id=request.transcription_id
