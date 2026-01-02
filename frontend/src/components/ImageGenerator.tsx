@@ -22,31 +22,50 @@ const RESOLUTIONS = [
   { value: '4k', label: '4K (høj kvalitet)' },
 ];
 
+const IMAGE_STYLES = [
+  { value: '', label: 'Ingen stil (standard)' },
+  { value: 'photorealistic', label: 'Fotorealistisk' },
+  { value: 'digital art', label: 'Digital kunst' },
+  { value: 'oil painting', label: 'Oliemaleri' },
+  { value: 'watercolor', label: 'Akvarel' },
+  { value: 'minimalist', label: 'Minimalistisk' },
+  { value: 'abstract', label: 'Abstrakt' },
+  { value: 'cartoon', label: 'Tegneserie' },
+  { value: 'sketch', label: 'Skitse' },
+  { value: 'cinematic', label: 'Filmisk' },
+];
+
 export default function ImageGenerator({ initialPrompt = '' }: Props) {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [editPrompt, setEditPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState('1:1');
   const [resolution, setResolution] = useState('2k');
+  const [imageStyle, setImageStyle] = useState('');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
   const [generations, setGenerations] = useState<ImageGeneration[]>([]);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
 
   const currentGeneration = generations.length > 0 ? generations[generations.length - 1] : null;
 
   const handleGenerate = async () => {
-    const currentPrompt = currentGeneration ? editPrompt : prompt;
-    if (!currentPrompt.trim()) {
+    const basePrompt = currentGeneration ? editPrompt : prompt;
+    if (!basePrompt.trim()) {
       setError('Skriv en beskrivelse af billedet');
       return;
     }
+
+    // Prepend style to prompt if selected
+    const fullPrompt = imageStyle && !currentGeneration
+      ? `${imageStyle} style: ${basePrompt}`
+      : basePrompt;
 
     setGenerating(true);
     setError('');
 
     try {
       const result = await generateImage({
-        prompt: currentPrompt,
+        prompt: fullPrompt,
         session_id: currentGeneration?.id,
         aspect_ratio: aspectRatio,
         resolution,
@@ -170,32 +189,47 @@ export default function ImageGenerator({ initialPrompt = '' }: Props) {
 
       {/* Settings */}
       {showSettings && (
-        <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg">
+        <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Format</label>
+            <label className="block text-sm text-gray-600 mb-1">Billedstil</label>
             <select
-              value={aspectRatio}
-              onChange={(e) => setAspectRatio(e.target.value)}
+              value={imageStyle}
+              onChange={(e) => setImageStyle(e.target.value)}
               className="input"
               disabled={!!currentGeneration}
             >
-              {ASPECT_RATIOS.map(({ value, label }) => (
+              {IMAGE_STYLES.map(({ value, label }) => (
                 <option key={value} value={value}>{label}</option>
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Opløsning</label>
-            <select
-              value={resolution}
-              onChange={(e) => setResolution(e.target.value)}
-              className="input"
-              disabled={!!currentGeneration}
-            >
-              {RESOLUTIONS.map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Format</label>
+              <select
+                value={aspectRatio}
+                onChange={(e) => setAspectRatio(e.target.value)}
+                className="input"
+                disabled={!!currentGeneration}
+              >
+                {ASPECT_RATIOS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Opløsning</label>
+              <select
+                value={resolution}
+                onChange={(e) => setResolution(e.target.value)}
+                className="input"
+                disabled={!!currentGeneration}
+              >
+                {RESOLUTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       )}

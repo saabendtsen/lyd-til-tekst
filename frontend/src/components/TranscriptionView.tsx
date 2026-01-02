@@ -370,7 +370,7 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
           <p className="text-sm text-gray-600 mb-4">
             Beskriv det billede du ønsker baseret på den bearbejdede tekst. Du kan iterere og lave ændringer.
           </p>
-          <ImageGenerator initialPrompt={`Lav et billede baseret på: ${processedText.substring(0, 200)}${processedText.length > 200 ? '...' : ''}`} />
+          <ImageGenerator initialPrompt={processedText} />
         </div>
       )}
     </div>
