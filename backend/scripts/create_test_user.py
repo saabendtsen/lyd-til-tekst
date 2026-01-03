@@ -41,9 +41,11 @@ def create_test_user(username: str = "testuser", password: str = "testpass123"):
         db.refresh(user)
 
         print(f"Created test user: {username} (id={user.id})")
-        print(f"Password: {password}")
         return user
 
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 

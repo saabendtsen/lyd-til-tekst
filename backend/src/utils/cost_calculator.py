@@ -11,9 +11,9 @@ PRICING = {
         }
     },
     "gemini": {
-        "gemini-3-flash-preview": {
-            "input_per_million": 0.50,   # $0.50 per million input tokens
-            "output_per_million": 1.00   # $1.00 per million output tokens
+        "gemini-2.0-flash": {
+            "input_per_million": 0.10,   # $0.10 per million input tokens
+            "output_per_million": 0.40   # $0.40 per million output tokens
         },
         "gemini-3-pro-image-preview": {
             "input_per_million": 2.00,   # $2.00 per million input tokens
@@ -49,7 +49,7 @@ def calculate_whisper_cost(duration_seconds: float, model: str = "whisper-1") ->
 def calculate_gemini_cost(
     input_tokens: int,
     output_tokens: int,
-    model: str = "gemini-3-flash-preview"
+    model: str = "gemini-2.0-flash"
 ) -> float:
     """
     Calculate Gemini API cost based on token usage.
@@ -62,7 +62,7 @@ def calculate_gemini_cost(
     Returns:
         Cost in USD
     """
-    pricing = PRICING["gemini"].get(model, PRICING["gemini"]["gemini-3-flash-preview"])
+    pricing = PRICING["gemini"].get(model, PRICING["gemini"]["gemini-2.0-flash"])
     input_cost = (input_tokens / 1_000_000) * pricing["input_per_million"]
     output_cost = (output_tokens / 1_000_000) * pricing["output_per_million"]
     return input_cost + output_cost
@@ -94,11 +94,13 @@ def calculate_image_generation_cost(
     input_cost = (input_tokens / 1_000_000) * pricing["input_per_million"]
     output_cost = (output_tokens / 1_000_000) * pricing["output_per_million"]
 
-    # Image output cost
-    if resolution == "4k":
-        image_cost = images_generated * pricing["image_output_4k"]
-    else:  # 1k or 2k
-        image_cost = images_generated * pricing["image_output_1k_2k"]
+    # Image output cost (only for image-capable models)
+    image_cost = 0.0
+    if images_generated > 0:
+        if resolution == "4k":
+            image_cost = images_generated * pricing.get("image_output_4k", 0)
+        else:  # 1k or 2k
+            image_cost = images_generated * pricing.get("image_output_1k_2k", 0)
 
     return input_cost + output_cost + image_cost
 

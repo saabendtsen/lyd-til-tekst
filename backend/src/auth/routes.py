@@ -46,6 +46,15 @@ def register(
             detail="Brugernavnet er allerede taget"
         )
 
+    # Check if email already exists
+    if request.email:
+        existing_email = db.query(User).filter(User.email == request.email).first()
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email er allerede i brug"
+            )
+
     # Create user
     user = User(
         username=request.username,
@@ -53,8 +62,15 @@ def register(
         email=request.email
     )
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    try:
+        db.commit()
+        db.refresh(user)
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Kunne ikke oprette bruger"
+        )
 
     # Set auth cookie
     token = create_access_token(user.id, user.username)

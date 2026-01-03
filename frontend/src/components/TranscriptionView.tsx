@@ -19,9 +19,19 @@ interface Props {
 }
 
 export default function TranscriptionView({ transcription, onUpdate, onBack }: Props) {
+  // Sync state with prop changes to handle derived state properly
   const [rawText, setRawText] = useState(transcription.raw_text);
   const [instruction, setInstruction] = useState(transcription.instruction || '');
   const [processedText, setProcessedText] = useState(transcription.processed_text || '');
+
+  // Update local state when transcription prop changes
+  useEffect(() => {
+    setRawText(transcription.raw_text);
+    setInstruction(transcription.instruction || '');
+    setProcessedText(transcription.processed_text || '');
+    setHasAudio(transcription.has_audio);
+    setHasChanges(false);
+  }, [transcription.id, transcription.raw_text, transcription.instruction, transcription.processed_text, transcription.has_audio]);
   const [saving, setSaving] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [deletingAudio, setDeletingAudio] = useState(false);
@@ -83,6 +93,7 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
       setHasChanges(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kunne ikke gemme');
+      throw err; // Re-throw so handleProcess knows save failed
     } finally {
       setSaving(false);
     }
@@ -96,7 +107,12 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
 
     // Save raw text first if changed
     if (hasChanges) {
-      await handleSaveRawText();
+      try {
+        await handleSaveRawText();
+      } catch {
+        // handleSaveRawText already sets error state
+        return;
+      }
     }
 
     setProcessing(true);

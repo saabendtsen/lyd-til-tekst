@@ -32,8 +32,14 @@ def get_current_user(
             detail="Ugyldig eller udløbet session"
         )
 
-    user_id = int(payload.get("sub", 0))
-    user = db.query(User).filter(User.id == user_id).first()
+    try:
+        user_id = int(payload.get("sub", 0))
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Ugyldig bruger-ID i token"
+        )
+    user = db.get(User, user_id)
 
     if not user:
         raise HTTPException(
@@ -57,5 +63,8 @@ def get_optional_user(
     if not payload:
         return None
 
-    user_id = int(payload.get("sub", 0))
-    return db.query(User).filter(User.id == user_id).first()
+    try:
+        user_id = int(payload.get("sub", 0))
+    except (ValueError, TypeError):
+        return None
+    return db.get(User, user_id)

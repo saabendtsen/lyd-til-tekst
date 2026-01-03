@@ -39,6 +39,7 @@ export default function StyleGuideEditor({ guide, onUpdate, onClose }: Props) {
       setTimeout(() => setSuccess(''), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kunne ikke gemme');
+      throw err; // Re-throw so handleGenerate knows save failed
     } finally {
       setSaving(false);
     }
@@ -51,7 +52,12 @@ export default function StyleGuideEditor({ guide, onUpdate, onClose }: Props) {
     }
 
     // Save current state first
-    await handleSave();
+    try {
+      await handleSave();
+    } catch {
+      // handleSave already sets error state
+      return;
+    }
 
     setGenerating(true);
     setError('');

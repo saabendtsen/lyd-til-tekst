@@ -79,7 +79,7 @@ export default function ImageGenerator({ initialPrompt = '', transcriptionId, sa
         resolution,
       });
 
-      setGenerations([...generations, result]);
+      setGenerations(prev => [...prev, result]);
       setEditPrompt('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kunne ikke generere billede');
@@ -95,6 +95,9 @@ export default function ImageGenerator({ initialPrompt = '', transcriptionId, sa
       const response = await fetch(getImageDataUrl(currentGeneration.id), {
         credentials: 'include',
       });
+      if (!response.ok) {
+        throw new Error('Kunne ikke hente billede');
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

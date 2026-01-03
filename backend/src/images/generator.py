@@ -4,11 +4,9 @@ Supports multi-turn conversational editing where users can iteratively
 refine generated images through follow-up prompts.
 """
 import base64
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List
-from datetime import datetime
 
 from ..config import GEMINI_API_KEY_FREE, GEMINI_API_KEY_PAID
 
@@ -219,7 +217,9 @@ def _generate_with_gemini(
 def save_image_to_file(image_base64: str, filename: str, output_dir: Path) -> Path:
     """Save base64 image to file."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    filepath = output_dir / filename
+    # Sanitize filename to prevent path traversal
+    safe_filename = Path(filename).name
+    filepath = output_dir / safe_filename
     image_bytes = base64.b64decode(image_base64)
     filepath.write_bytes(image_bytes)
     return filepath

@@ -65,6 +65,6 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    from .config import HOST, PORT
+    from src.config import HOST, PORT
 
     uvicorn.run(app, host=HOST, port=PORT)

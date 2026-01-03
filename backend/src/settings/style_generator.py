@@ -57,10 +57,10 @@ def generate_style_guide(examples: str, description: Optional[str] = None) -> Ge
     if description and description.strip():
         description_section = f"\nTEKSTTYPE/FORMÅL:\n{description.strip()}\n"
 
-    prompt = STYLE_GUIDE_PROMPT.format(
-        description_section=description_section,
-        examples=examples
-    )
+    # Use replace instead of format to avoid KeyError on curly braces in examples
+    prompt = STYLE_GUIDE_PROMPT.replace(
+        "{description_section}", description_section
+    ).replace("{examples}", examples)
 
     # Try free tier first
     if GEMINI_API_KEY_FREE:

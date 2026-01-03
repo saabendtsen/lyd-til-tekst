@@ -18,13 +18,18 @@ export default function HistoryClient({ basePath }: Props) {
   }, []);
 
   const loadUser = async () => {
-    const me = await getMe();
-    if (!me) {
+    try {
+      const me = await getMe();
+      if (!me) {
+        window.location.href = basePath;
+        return;
+      }
+      setUser(me);
+    } catch {
       window.location.href = basePath;
-      return;
+    } finally {
+      setLoading(false);
     }
-    setUser(me);
-    setLoading(false);
   };
 
   if (loading) {

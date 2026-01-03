@@ -20,7 +20,7 @@ export default function HistoryList({ onSelect }: Props) {
     setError('');
     try {
       const data = await getTranscriptions();
-      setTranscriptions(data.transcriptions);
+      setTranscriptions(data?.transcriptions || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kunne ikke hente historik');
     } finally {
@@ -35,11 +35,16 @@ export default function HistoryList({ onSelect }: Props) {
     }
 
     setDeleting(id);
+    const previousError = error;
     try {
       await deleteTranscription(id);
       setTranscriptions((prev) => prev.filter((t) => t.id !== id));
+      setError(''); // Clear any previous error on success
     } catch (err) {
+      // Show error without replacing the list view
       setError(err instanceof Error ? err.message : 'Kunne ikke slette');
+      // Auto-clear the error after 3 seconds
+      setTimeout(() => setError(previousError), 3000);
     } finally {
       setDeleting(null);
     }

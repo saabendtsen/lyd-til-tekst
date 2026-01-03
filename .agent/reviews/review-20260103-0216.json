@@ -1,0 +1,1450 @@
+{
+  "timestamp": "2026-01-03T02:16:46.716957",
+  "project": "lyd-til-tekst",
+  "commit": "9727d4711f9639422e09cb51b25b72d7ba84308d",
+  "previous_commit": null,
+  "files_reviewed": 42,
+  "summary": {
+    "total_issues": 150,
+    "auto_fixable": 56,
+    "by_severity": {
+      "error": 34,
+      "warning": 71,
+      "info": 40
+    },
+    "by_category": {
+      "bug": 37,
+      "error_handling": 30,
+      "security": 15,
+      "performance": 38,
+      "style": 20,
+      "unused": 10
+    }
+  },
+  "issues": [
+    {
+      "line": 16,
+      "severity": "error",
+      "category": "bug",
+      "message": "Risiko for datatab: Databasefiler (*.db) er markeret som v\u00e6rende sikre at slette, hvilket kan f\u00f8re til permanent tab af applikationsdata.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  - \"data/*.db\"",
+        "new": "  # - \"data/*.db\""
+      },
+      "file": "backend/.agent/manifest.yaml"
+    },
+    {
+      "line": 18,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Dependencies-listen er tom, hvilket er inkonsistent med projektbeskrivelsen, der n\u00e6vner FastAPI, Whisper og Gemini integration.",
+      "auto_fixable": false,
+      "file": "backend/.agent/manifest.yaml"
+    },
+    {
+      "line": 29,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Manglende db.rollback() i tilf\u00e6lde af fejl. Database-transaktioner b\u00f8r rulles tilbage i en except-blok for at undg\u00e5 'In-Failed-Transaction' tilstand.",
+      "auto_fixable": false,
+      "file": "backend/scripts/create_test_user.py"
+    },
+    {
+      "line": 26,
+      "severity": "warning",
+      "category": "security",
+      "message": "Hardcoded default password i funktionsargumenter.",
+      "auto_fixable": false,
+      "file": "backend/scripts/create_test_user.py"
+    },
+    {
+      "line": 47,
+      "severity": "warning",
+      "category": "security",
+      "message": "Password printes til stdout, hvilket kan l\u00e6kke f\u00f8lsomme oplysninger i log-filer eller CI/CD output.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "        print(f\"Password: {password}\")",
+        "new": "        # Password printing removed for security reasons"
+      },
+      "file": "backend/scripts/create_test_user.py"
+    },
+    {
+      "line": 58,
+      "severity": "warning",
+      "category": "security",
+      "message": "Hardcoded default password i argparse. Dette b\u00f8r hentes fra milj\u00f8variable eller kr\u00e6ves som input.",
+      "auto_fixable": false,
+      "file": "backend/scripts/create_test_user.py"
+    },
+    {
+      "line": 31,
+      "severity": "info",
+      "category": "performance",
+      "message": "Potentiel race condition. Hvis to instanser k\u00f8rer samtidigt, kan begge tjekke og fors\u00f8ge at oprette samme bruger. H\u00e5ndter IntegrityError i stedet.",
+      "auto_fixable": false,
+      "file": "backend/scripts/create_test_user.py"
+    },
+    {
+      "line": 36,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Potentiel ValueError: int() vil fejle, hvis 'sub' claim i JWT ikke er en numerisk streng. Da JWT standarden foreskriver 'sub' som en streng (ofte UUID), b\u00f8r dette h\u00e5ndteres sikkert.",
+      "auto_fixable": false,
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 37,
+      "severity": "info",
+      "category": "performance",
+      "message": "Brug 'db.get(User, user_id)' i stedet for query.filter().first(). 'db.get' er mere effektiv, da den tjekker session-clache f\u00f8r den sender en SQL foresp\u00f8rgsel.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "user = db.query(User).filter(User.id == user_id).first()",
+        "new": "user = db.get(User, user_id)"
+      },
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 47,
+      "severity": "warning",
+      "category": "style",
+      "message": "Logik-duplikering: get_optional_user gentager koden fra get_current_user. Overvej at lade get_current_user kalde get_optional_user eller modsat.",
+      "auto_fixable": false,
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 59,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "I en optional dependency b\u00f8r fejl i parsing af token (f.eks. casting fejl) ikke crashe applikationen, men i stedet returnere None.",
+      "auto_fixable": false,
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 61,
+      "severity": "info",
+      "category": "performance",
+      "message": "Brug 'db.get(User, user_id)' for at optimere databaseopslag.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "return db.query(User).filter(User.id == user_id).first()",
+        "new": "return db.get(User, user_id)"
+      },
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 21,
+      "severity": "warning",
+      "category": "security",
+      "message": "Adgangskode minimumsl\u00e6ngde p\u00e5 6 er for lav til moderne standarder. B\u00f8r v\u00e6re mindst 12 tegn.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "password: str = Field(..., min_length=6)",
+        "new": "password: str = Field(..., min_length=12)"
+      },
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 53,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Manglende tjek for om email allerede er i brug. Kan resultere i 500 error hvis email er markeret som UNIQUE i databasen.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 64,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "db.commit() kaldes uden fejlh\u00e5ndtering. Databasefejl (f.eks. IntegrityError ved race conditions) vil crashe requestet med en 500 error.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 75,
+      "severity": "info",
+      "category": "security",
+      "message": "Hardcoded 'secure=True' i cookies forhindrer dem i at blive sendt over HTTP, hvilket kan skabe problemer i lokale udviklingsmilj\u00f8er uden HTTPS proxy.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 77,
+      "severity": "warning",
+      "category": "security",
+      "message": "max_age p\u00e5 30 dage er meget h\u00f8j for en access token uden refresh-token logik. Overvej en kortere levetid (f.eks. 24 timer).",
+      "auto_fixable": true,
+      "fix": {
+        "old": "max_age=60 * 60 * 24 * 30  # 30 days",
+        "new": "max_age=60 * 60 * 24  # 1 day"
+      },
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 25,
+      "severity": "warning",
+      "category": "style",
+      "message": "'datetime.utcnow()' er deprecated i Python 3.12+. Brug 'datetime.now(datetime.UTC)'.",
+      "auto_fixable": false,
+      "file": "src/auth/utils.py"
+    },
+    {
+      "line": 12,
+      "severity": "info",
+      "category": "security",
+      "message": "Bcrypt har en \u00f8vre gr\u00e6nse p\u00e5 72 tegn for passwords. Passwords herover vil blive trunkeret.",
+      "auto_fixable": false,
+      "file": "src/auth/utils.py"
+    },
+    {
+      "line": 23,
+      "severity": "warning",
+      "category": "security",
+      "message": "Access tokens b\u00f8r normalt have en kort levetid (minutter/timer). JWT_EXPIRE_DAYS indikerer en meget lang levetid uden refresh-token logik.",
+      "auto_fixable": false,
+      "file": "src/auth/utils.py"
+    },
+    {
+      "line": 16,
+      "severity": "warning",
+      "category": "security",
+      "message": "Dynamisk generering af JWT_SECRET med secrets.token_urlsafe ved hver genstart g\u00f8r eksisterende tokens ugyldige. Brug en fast milj\u00f8variabel i produktion.",
+      "auto_fixable": false,
+      "file": "backend/src/config.py"
+    },
+    {
+      "line": 21,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Obligatorisk API n\u00f8gle (OPENAI_API_KEY) indl\u00e6ses uden validering. Applikationen vil fejle ved k\u00f8rsel hvis den mangler.",
+      "auto_fixable": false,
+      "file": "backend/src/config.py"
+    },
+    {
+      "line": 28,
+      "severity": "error",
+      "category": "bug",
+      "message": "Ugyldigt modelnavn 'gemini-3-flash-preview'. Gemini modeller findes pt. kun op til version 1.5 eller 2.0.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "GEMINI_MODEL = os.getenv(\"GEMINI_MODEL\", \"gemini-3-flash-preview\")",
+        "new": "GEMINI_MODEL = os.getenv(\"GEMINI_MODEL\", \"gemini-1.5-flash\")"
+      },
+      "file": "backend/src/config.py"
+    },
+    {
+      "line": 32,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Direkte type-casting af os.getenv til int kan krasche programmet ved opstart, hvis milj\u00f8variablen indeholder bogstaver.",
+      "auto_fixable": false,
+      "file": "backend/src/config.py"
+    },
+    {
+      "line": 2,
+      "severity": "info",
+      "category": "unused",
+      "message": "Import 'Optional' er ikke brugt i koden.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "from typing import Optional",
+        "new": ""
+      },
+      "file": "backend/src/database.py"
+    },
+    {
+      "line": 25,
+      "severity": "info",
+      "category": "style",
+      "message": "'index=True' er overfl\u00f8dig n\u00e5r 'unique=True' er sat, da unikke constraints automatisk opretter et index.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    username = Column(String(50), unique=True, nullable=False, index=True)",
+        "new": "    username = Column(String(50), unique=True, nullable=False)"
+      },
+      "file": "backend/src/database.py"
+    },
+    {
+      "line": 28,
+      "severity": "warning",
+      "category": "style",
+      "message": "datetime.utcnow() er deprecated i Python 3.12+. Brug datetime.now(timezone.utc). Dette g\u00e6lder alle forekomster i filen.",
+      "auto_fixable": false,
+      "file": "backend/src/database.py"
+    },
+    {
+      "line": 87,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Lagring af Base64-kodet billeddata i en database (Text column) kan f\u00f8re til massiv database-oppustning og d\u00e5rlig performance. Overvej at gemme alle billeder som filer og kun referere til stien.",
+      "auto_fixable": false,
+      "file": "backend/src/database.py"
+    },
+    {
+      "line": 119,
+      "severity": "warning",
+      "category": "bug",
+      "message": "String(10) til 'image_resolution' er for kort. En opl\u00f8sning som '1024x1024' fylder 9 tegn, men f.eks. '2048x2048' (11 tegn) vil fejle.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    image_resolution = Column(String(10), nullable=True)  # '1k', '2k', '4k'",
+        "new": "    image_resolution = Column(String(20), nullable=True)  # '1024x1024', etc."
+      },
+      "file": "backend/src/database.py"
+    },
+    {
+      "line": 130,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "init_db mangler error handling. Hvis databasen ikke kan tilg\u00e5s (rettigheder, diskplads), vil applikationen crashe uden forklaring.",
+      "auto_fixable": false,
+      "file": "backend/src/database.py"
+    },
+    {
+      "line": 9,
+      "severity": "info",
+      "category": "unused",
+      "message": "Ubrugt import 'json'",
+      "auto_fixable": true,
+      "fix": {
+        "old": "import json",
+        "new": ""
+      },
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 13,
+      "severity": "info",
+      "category": "unused",
+      "message": "Ubrugt import 'datetime'",
+      "auto_fixable": true,
+      "fix": {
+        "old": "from datetime import datetime",
+        "new": ""
+      },
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 16,
+      "severity": "error",
+      "category": "bug",
+      "message": "Ugyldigt modelnavn. 'gemini-3-pro-image-preview' eksisterer ikke (Gemini 3 er ikke udgivet). Mente du sandsynligvis 'imagen-3.0-generate-001'?",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 102,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Imports b\u00f8r placeres i toppen af filen. Import i en funktion medf\u00f8rer overhead ved gentagne kald.",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 78,
+      "severity": "info",
+      "category": "style",
+      "message": "Brug 'logging' modulet i stedet for 'print' i en service-komponent.",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 158,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Logikken overskriver 'thought_signature' i en loop. Hvis flere dele har signaturer, gemmes kun den sidste.",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 207,
+      "severity": "error",
+      "category": "security",
+      "message": "Path Traversal risiko. 'filename' b\u00f8r renses eller tvinges til at v\u00e6re et filnavn (fx vha. Path(filename).name) for at undg\u00e5 skrivning uden for output_dir.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    filepath = output_dir / filename",
+        "new": "    filepath = output_dir / Path(filename).name"
+      },
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 2,
+      "severity": "info",
+      "category": "unused",
+      "message": "Modulet 'json' er importeret, men bliver ikke brugt.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "import json",
+        "new": ""
+      },
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 22,
+      "severity": "warning",
+      "category": "style",
+      "message": "Brug 'Literal' fra typing til 'aspect_ratio' for bedre validering og OpenAPI dokumentation.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    aspect_ratio: str = \"1:1\"  # 1:1, 16:9, 9:16, 4:3, 3:4",
+        "new": "    aspect_ratio: Literal[\"1:1\", \"16:9\", \"9:16\", \"4:3\", \"3:4\"] = \"1:1\""
+      },
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 23,
+      "severity": "warning",
+      "category": "style",
+      "message": "Brug 'Literal' fra typing til 'resolution' for bedre validering.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    resolution: str = \"2k\"  # 1k, 2k, 4k",
+        "new": "    resolution: Literal[\"1k\", \"2k\", \"4k\"] = \"2k\""
+      },
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 70,
+      "severity": "warning",
+      "category": "performance",
+      "message": "N+1 query problem i loop. Hver samtale-turn trigger et database kald. Brug en recursive CTE eller hent hele k\u00e6den i \u00e9t kald.",
+      "auto_fixable": false,
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 141,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Manglende atomar transaktion. Hvis usage-logning fejler efter billede-commit, er databasen inkonsistent. Flyt db.commit() til slutningen af funktionen.",
+      "auto_fixable": false,
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 208,
+      "severity": "info",
+      "category": "style",
+      "message": "Import af 'base64' b\u00f8r ske i toppen af filen i stedet for inde i funktionen.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    import base64",
+        "new": ""
+      },
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 9,
+      "severity": "error",
+      "category": "bug",
+      "message": "Relative imports (f.eks. '.database') vil fejle, hvis filen k\u00f8res direkte som et script ('python main.py'). Da der findes en '__main__' blok i bunden, b\u00f8r imports v\u00e6re absolutte, eller applikationen skal k\u00f8res som et modul.",
+      "auto_fixable": false,
+      "file": "backend/src/main.py"
+    },
+    {
+      "line": 24,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "init_db() kaldes uden fejlh\u00e5ndtering i lifespan. Hvis databaseforbindelsen fejler ved opstart, vil servicen crashe uden en kontrolleret fejlmeddelelse.",
+      "auto_fixable": false,
+      "file": "backend/src/main.py"
+    },
+    {
+      "line": 44,
+      "severity": "warning",
+      "category": "security",
+      "message": "Hardcodede CORS origins. Tilladte origins b\u00f8r konfigureres via milj\u00f8variable for at undg\u00e5 sikkerhedsrisici og sikre fleksibilitet mellem dev/prod milj\u00f8er.",
+      "auto_fixable": false,
+      "file": "backend/src/main.py"
+    },
+    {
+      "line": 61,
+      "severity": "info",
+      "category": "performance",
+      "message": "Brug 'async def' til health check endpoints, der ikke udf\u00f8rer blokerende I/O. Dette er mere effektivt i FastAPI, da det undg\u00e5r threadpool overhead.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "def health_check():",
+        "new": "async def health_check():"
+      },
+      "file": "backend/src/main.py"
+    },
+    {
+      "line": 70,
+      "severity": "error",
+      "category": "bug",
+      "message": "Relativ import '.config' inde i '__main__' blokken vil kaste en ImportError (no known parent package), n\u00e5r filen k\u00f8res direkte.",
+      "auto_fixable": false,
+      "file": "backend/src/main.py"
+    },
+    {
+      "line": 79,
+      "severity": "info",
+      "category": "style",
+      "message": "Variablenavnet 'id' skygger for den indbyggede Python-funktion id(). Brug f.eks. 'guide_id' i stedet.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "def get_style_guide(id: int,",
+        "new": "def get_style_guide(guide_id: int,"
+      },
+      "file": "src/settings/routes.py"
+    },
+    {
+      "line": 117,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Manglende validering af tomt navn ved opdatering. Tillader stripping til en tom streng, hvilket bryder kravet fra create-metoden.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    if data.name is not None:",
+        "new": "    if data.name is not None and data.name.strip():"
+      },
+      "file": "src/settings/routes.py"
+    },
+    {
+      "line": 149,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Sletning af en stilguide kan fejle pga. ForeignKey-restriktioner i ApiUsage tabellen, hvis der ikke er sat cascade delete i modellen.",
+      "auto_fixable": false,
+      "file": "src/settings/routes.py"
+    },
+    {
+      "line": 150,
+      "severity": "info",
+      "category": "performance",
+      "message": "Hvis en default stilguide slettes, efterlades brugeren uden en default guide. Overvej at s\u00e6tte en anden guide som default automatisk.",
+      "auto_fixable": false,
+      "file": "src/settings/routes.py"
+    },
+    {
+      "line": 173,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "ApiUsage logning og guide_content opdatering sker i samme transaktion. Hvis cost calculation fejler, mistes det genererede indhold (Gemini tokens er dog brugt).",
+      "auto_fixable": false,
+      "file": "src/settings/routes.py"
+    },
+    {
+      "line": 198,
+      "severity": "info",
+      "category": "performance",
+      "message": "Bulk update af 'is_default' b\u00f8r bruge synchronize_session=False for bedre performance, da objekterne ikke beh\u00f8ver at blive opdateret i hukommelsen her.",
+      "auto_fixable": true,
+      "fix": {
+        "old": ").update({\"is_default\": False})",
+        "new": ").update({\"is_default\": False}, synchronize_session=False)"
+      },
+      "file": "src/settings/routes.py"
+    },
+    {
+      "line": 63,
+      "severity": "error",
+      "category": "bug",
+      "message": "Brug af .format() p\u00e5 'examples' vil fejle med KeyError, hvis brugerens tekst indeholder kr\u00f8llede parenteser (f.eks. kode eller JSON).",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    prompt = STYLE_GUIDE_PROMPT.format(\n        description_section=description_section,\n        examples=examples\n    )",
+        "new": "    prompt = STYLE_GUIDE_PROMPT.replace(\"{description_section}\", description_section).replace(\"{examples}\", examples)"
+      },
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 84,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Imports ('google.genai') inde i en funktion medf\u00f8rer un\u00f8dig overhead, da de eksekveres ved hvert kald.",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 101,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Direkte adgang til 'response.text' kan kaste uventede fejl, hvis 'response.candidates' er tom (f.eks. ved total blokering af indhold).",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 118,
+      "severity": "info",
+      "category": "security",
+      "message": "Eksponering af r\u00e5 'str(e)' fra API'et kan l\u00e6kke interne systemdetaljer eller API-struktur til slutbrugeren.",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 2,
+      "severity": "info",
+      "category": "unused",
+      "message": "Ubrugt import 'json'",
+      "auto_fixable": true,
+      "fix": {
+        "old": "import json",
+        "new": ""
+      },
+      "file": "src/transcription/gemini.py"
+    },
+    {
+      "line": 3,
+      "severity": "info",
+      "category": "unused",
+      "message": "Ubrugt import 're'",
+      "auto_fixable": true,
+      "fix": {
+        "old": "import re",
+        "new": ""
+      },
+      "file": "src/transcription/gemini.py"
+    },
+    {
+      "line": 70,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Brug logging modulet i stedet for print() i en service-komponent",
+      "auto_fixable": false,
+      "file": "src/transcription/gemini.py"
+    },
+    {
+      "line": 78,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Brug logging modulet i stedet for print() i en service-komponent",
+      "auto_fixable": false,
+      "file": "src/transcription/gemini.py"
+    },
+    {
+      "line": 88,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Import af 'google.genai' b\u00f8r ligge \u00f8verst i filen for at undg\u00e5 overhead ved hvert funktionskald",
+      "auto_fixable": true,
+      "fix": {
+        "old": "        from google import genai",
+        "new": ""
+      },
+      "file": "src/transcription/gemini.py"
+    },
+    {
+      "line": 91,
+      "severity": "warning",
+      "category": "performance",
+      "message": "GenAI Client b\u00f8r instansieres uden for funktionen og genbruges for at udnytte connection pooling",
+      "auto_fixable": false,
+      "file": "src/transcription/gemini.py"
+    },
+    {
+      "line": 100,
+      "severity": "error",
+      "category": "performance",
+      "message": "Brug af 'async def' til tunge CPU-operationer (Whisper transskribering) blokerer event loopet i FastAPI. Brug en almindelig 'def' rute eller 'run_in_threadpool' for at undg\u00e5 at blokere andre foresp\u00f8rgsler.",
+      "auto_fixable": false,
+      "file": "src/transcription/routes.py"
+    },
+    {
+      "line": 114,
+      "severity": "error",
+      "category": "performance",
+      "message": "file.read() l\u00e6ser hele filen ind i hukommelsen (RAM). Dette kan f\u00f8re til hukommelsesmangel (OOM) ved store lydfiler. Brug streaming (chunks) i stedet.",
+      "auto_fixable": false,
+      "file": "src/transcription/routes.py"
+    },
+    {
+      "line": 153,
+      "severity": "error",
+      "category": "bug",
+      "message": "Variablen 'temp_path' tilg\u00e5s i finally-blokken, men er ikke defineret hvis koden fejler f\u00f8r linje 120, hvilket vil kaste en UnboundLocalError.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    try:",
+        "new": "    temp_path = None\n    try:"
+      },
+      "file": "src/transcription/routes.py"
+    },
+    {
+      "line": 134,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Database-commit udf\u00f8res f\u00f8r lydfilen er gemt permanent. Hvis shutil.copy2 fejler, vil databasen referere til en fil der ikke eksisterer. Brug db.flush() i stedet for commit indtil filen er sikret.",
+      "auto_fixable": false,
+      "file": "src/transcription/routes.py"
+    },
+    {
+      "line": 46,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Disk-I/O (Path.exists()) inde i en loop/helper-funktion ved list-visning skaber et N+1 performance problem. Tjek b\u00f8r ske via database-flag eller caches.",
+      "auto_fixable": false,
+      "file": "src/transcription/routes.py"
+    },
+    {
+      "line": 110,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Path(file.filename) kan kaste en fejl hvis filename er None. Selvom der tjekkes for suffix senere, b\u00f8r validering ske f\u00f8r Path-objektet oprettes.",
+      "auto_fixable": false,
+      "file": "src/transcription/routes.py"
+    },
+    {
+      "line": 195,
+      "severity": "error",
+      "category": "performance",
+      "message": "process_transcription er defineret som en synkron 'def', men kalder process_text som sandsynligvis laver eksterne API-kald. Dette blokerer en worker-thread i hele svartiden.",
+      "auto_fixable": false,
+      "file": "src/transcription/routes.py"
+    },
+    {
+      "line": 62,
+      "severity": "error",
+      "category": "bug",
+      "message": "Den importerede OPENAI_API_KEY anvendes ikke. OpenAI-klienten vil fejle, hvis milj\u00f8variablen ikke er sat uafh\u00e6ngigt af config-filen.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "client = OpenAI()",
+        "new": "client = OpenAI(api_key=OPENAI_API_KEY)"
+      },
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 35,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Brug af .with_suffix('.converted.mp3') skaber risiko for race conditions, hvis flere processer arbejder p\u00e5 filer med samme navn samtidigt.",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 62,
+      "severity": "info",
+      "category": "performance",
+      "message": "Instantiere OpenAI klienten inde i funktionen forhindrer genbrug af forbindelser (connection pooling). B\u00f8r flyttes til modul-niveau.",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 24,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "subprocess.run vil kaste en FileNotFoundError, hvis ffprobe/ffmpeg ikke findes i systemets PATH. B\u00f8r h\u00e5ndteres med try-except.",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 89,
+      "severity": "info",
+      "category": "unused",
+      "message": "Funktionen 'format_duration' er defineret, men bliver ikke brugt i modulet.",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 65,
+      "severity": "info",
+      "category": "performance",
+      "message": "Lydfiler konverteres altid til mp3, selv hvis de allerede er i et format underst\u00f8ttet direkte af Whisper API (f.eks. mp3, m4a, wav).",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 11,
+      "severity": "info",
+      "category": "unused",
+      "message": "Ubrugt import 'func' fra sqlalchemy.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "from sqlalchemy import func",
+        "new": ""
+      },
+      "file": "src/usage/routes.py"
+    },
+    {
+      "line": 102,
+      "severity": "error",
+      "category": "performance",
+      "message": "Henter alle r\u00e6kker fra databasen til beregning i Python-hukommelse. Dette vil medf\u00f8re performance-problemer og potentielle crashes (Out of Memory) n\u00e5r datam\u00e6ngden vokser. Brug SQL aggregation funktioner (SUM, COUNT, GROUP BY) i stedet.",
+      "auto_fixable": false,
+      "file": "src/usage/routes.py"
+    },
+    {
+      "line": 93,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Kald af 'usd_to_dkk' i en list comprehension for hver r\u00e6kke er ineffektivt. Hvis funktionen henter valutakurser via netv\u00e6rk eller beregner dem gentagne gange, b\u00f8r raten hentes \u00e9n gang og genbruges, eller konverteringen b\u00f8r ske i frontenden.",
+      "auto_fixable": false,
+      "file": "src/usage/routes.py"
+    },
+    {
+      "line": 106,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Beregning af totalbel\u00f8b med floating point i Python (sum) kan f\u00f8re til pr\u00e6cisionsfejl ved valuta. SQL's SUM() p\u00e5 numeriske typer er mere pr\u00e6cis.",
+      "auto_fixable": false,
+      "file": "src/usage/routes.py"
+    },
+    {
+      "line": 137,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Manglende fejlh\u00e5ndtering omkring 'get_exchange_rate()'. Hvis den eksterne kilde til valutakurser er nede, vil hele endpointet fejle.",
+      "auto_fixable": false,
+      "file": "src/usage/routes.py"
+    },
+    {
+      "line": 102,
+      "severity": "error",
+      "category": "bug",
+      "message": "KeyError risk: 'pricing' ordbogen mangler n\u00f8glen 'image_output_4k', hvis en tekst-model (f.eks. 'gemini-3-flash-preview') v\u00e6lges manuelt eller som fallback.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "image_cost = images_generated * pricing[\"image_output_4k\"]",
+        "new": "image_cost = images_generated * pricing.get(\"image_output_4k\", 0)"
+      },
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 104,
+      "severity": "error",
+      "category": "bug",
+      "message": "KeyError risk: 'pricing' ordbogen mangler n\u00f8glen 'image_output_1k_2k', hvis en model uden billed-underst\u00f8ttelse benyttes.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "image_cost = images_generated * pricing[\"image_output_1k_2k\"]",
+        "new": "image_cost = images_generated * pricing.get(\"image_output_1k_2k\", 0)"
+      },
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 48,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Manglende validering af input: 'duration_seconds' b\u00f8r valideres for at sikre, at den ikke er negativ, hvilket ellers medf\u00f8rer negative omkostninger.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 103,
+      "severity": "info",
+      "category": "bug",
+      "message": "Resolution fallback er for bred; alle strenge der ikke er pr\u00e6cis '4k' (inklusive fejlstavninger) takseres til '1k/2k' prisen.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 4,
+      "severity": "info",
+      "category": "style",
+      "message": "H\u00e5rdkodet valutakurs: 'USD_TO_DKK' b\u00f8r ideelt set hentes fra en milj\u00f8variabel eller konfigurationsfil fremfor at v\u00e6re defineret som en konstant i koden.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 24,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Konfigurationen begr\u00e6nser CI til 1 worker, hvilket deaktiverer parallelisering (fullyParallel) og \u00f8ger testtiden betydeligt.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "workers: process.env.CI ? 1 : undefined,",
+        "new": "workers: process.env.CI ? '50%' : undefined,"
+      },
+      "file": "lyd-til-tekst/frontend/playwright.config.ts"
+    },
+    {
+      "line": 39,
+      "severity": "info",
+      "category": "style",
+      "message": "Trace-indstillingen 'on-first-retry' genererer ingen traces ved fejl under lokal udvikling, da 'retries' er sat til 0 lokalt.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "trace: 'on-first-retry',",
+        "new": "trace: 'retain-on-failure',"
+      },
+      "file": "lyd-til-tekst/frontend/playwright.config.ts"
+    },
+    {
+      "line": 55,
+      "severity": "warning",
+      "category": "security",
+      "message": "H\u00e5rdkodet sti til 'storageState'. S\u00f8rg for at 'tests/.auth/' er tilf\u00f8jet til .gitignore for at undg\u00e5 l\u00e6k af session tokens.",
+      "auto_fixable": false,
+      "file": "lyd-til-tekst/frontend/playwright.config.ts"
+    },
+    {
+      "line": 20,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Manglende try/catch omkring det asynkrone 'getMe' kald. Hvis API'et fejler (f.eks. netv\u00e6rksfejl), vil applikationen forblive i 'loading' tilstand uendeligt.",
+      "auto_fixable": false,
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 17,
+      "severity": "warning",
+      "category": "style",
+      "message": "useEffect mangler 'loadUser' i dependency arrayet. Da 'loadUser' er defineret i komponentens scope, b\u00f8r den enten flyttes ind i useEffect eller wrappes i useCallback for at undg\u00e5 potentielle bugs ved fremtidige \u00e6ndringer.",
+      "auto_fixable": false,
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 22,
+      "severity": "warning",
+      "category": "security",
+      "message": "Direkte tildeling af 'basePath' til 'window.location.href' kan medf\u00f8re 'Open Redirect' s\u00e5rbarheder, hvis 'basePath' kan manipuleres af en bruger.",
+      "auto_fixable": false,
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 22,
+      "severity": "info",
+      "category": "performance",
+      "message": "Brug af 'window.location.href' tvinger en fuld side-reload. I en SPA (Single Page Application) b\u00f8r man foretr\u00e6kke en router-baseret navigation (f.eks. useNavigate fra react-router).",
+      "auto_fixable": false,
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 11,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Asynkront kald til 'logout()' mangler fejlh\u00e5ndtering (try-catch). Hvis kaldet fejler, vil redirection ikke ske, og brugeren f\u00e5r ingen feedback.",
+      "auto_fixable": false,
+      "file": "src/components/Header.tsx"
+    },
+    {
+      "line": 20,
+      "severity": "warning",
+      "category": "bug",
+      "message": "URL-sammens\u00e6tning ved brug af template literals mangler en separator (skr\u00e5streg). Dette vil fejle hvis 'basePath' ikke har en trailing slash.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "href={`${basePath}app`}",
+        "new": "href={`${basePath}/app`}"
+      },
+      "file": "src/components/Header.tsx"
+    },
+    {
+      "line": 29,
+      "severity": "warning",
+      "category": "bug",
+      "message": "URL-sammens\u00e6tning mangler separator skr\u00e5streg.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "href={`${basePath}app`}",
+        "new": "href={`${basePath}/app`}"
+      },
+      "file": "src/components/Header.tsx"
+    },
+    {
+      "line": 39,
+      "severity": "warning",
+      "category": "bug",
+      "message": "URL-sammens\u00e6tning mangler separator skr\u00e5streg.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "href={`${basePath}history`}",
+        "new": "href={`${basePath}/history`}"
+      },
+      "file": "src/components/Header.tsx"
+    },
+    {
+      "line": 49,
+      "severity": "warning",
+      "category": "bug",
+      "message": "URL-sammens\u00e6tning mangler separator skr\u00e5streg.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "href={`${basePath}settings`}",
+        "new": "href={`${basePath}/settings`}"
+      },
+      "file": "src/components/Header.tsx"
+    },
+    {
+      "line": 21,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Asynkront kald til 'getMe()' mangler fejlh\u00e5ndtering (try-catch). Hvis API'et returnerer en fejl eller der er netv\u00e6rksfejl, vil 'setLoading(false)' aldrig blive kaldt, og brugeren vil blive fanget p\u00e5 en uendelig loading-sk\u00e6rm.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 17,
+      "severity": "warning",
+      "category": "performance",
+      "message": "useEffect mangler afh\u00e6ngigheden 'loadUser'. Da 'loadUser' er defineret inde i komponenten, b\u00f8r den enten inkluderes i dependency arrayet (hvilket kr\u00e6ver useCallback) eller flyttes ind i selve useEffect-kroppen for at overholde Reacts exhaustive-deps regel.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 23,
+      "severity": "info",
+      "category": "performance",
+      "message": "Brug af 'window.location.href' tvinger en fuld genindl\u00e6sning af siden. I en React-applikation b\u00f8r man normalt bruge en router-baseret redirect (f.eks. useNavigate) for en bedre brugeroplevelse og performance.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 92,
+      "severity": "error",
+      "category": "bug",
+      "message": "Deling af 'error' state mellem indl\u00e6sning og sletning medf\u00f8rer, at hele listen forsvinder og erstattes af en fejlmeddelelse, hvis en sletning fejler.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 132,
+      "severity": "info",
+      "category": "style",
+      "message": "Redundant trunkering: 'truncateText' bruges sammen med CSS 'line-clamp-2'. CSS-l\u00f8sningen er tilstr\u00e6kkelig og mere robust over for forskellige sk\u00e6rmst\u00f8rrelser.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "{truncateText(t.raw_text)}",
+        "new": "{t.raw_text}"
+      },
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 48,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Manglende validering af 'dateStr'. Hvis API'et returnerer et ugyldigt datoformat, vil 'new Date()' returnere 'Invalid Date', som vises direkte i UI.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 14,
+      "severity": "warning",
+      "category": "performance",
+      "message": "useEffect mangler 'loadTranscriptions' i dependency-arrayet. Da funktionen genskabes ved hver render, b\u00f8r den enten flyttes ind i useEffect eller wrappes i useCallback.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 23,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Risiko for runtime error: Der antages at 'data' altid indeholder objektet 'transcriptions'. Hvis API-kaldet returnerer uventet data eller undefined, vil appen crashe.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "setTranscriptions(data.transcriptions);",
+        "new": "setTranscriptions(data?.transcriptions || []);"
+      },
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 47,
+      "severity": "bug",
+      "category": "bug",
+      "message": "Alle 'savedImages' f\u00e5r tildelt turn_number: 1, hvilket giver misvisende information i UI (f.eks. 'Runde 1 af 5' for alle billeder).",
+      "auto_fixable": true,
+      "fix": {
+        "old": "savedImages.map(img => ({",
+        "new": "savedImages.map((img, index) => ({"
+      },
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 74,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Brug af state-variabel direkte i en setter-funktion kan f\u00f8re til race-conditions. Brug den funktionelle update-form: setGenerations(prev => [...prev, result]).",
+      "auto_fixable": true,
+      "fix": {
+        "old": "setGenerations([...generations, result]);",
+        "new": "setGenerations(prev => [...prev, result]);"
+      },
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 87,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "fetch() kaster kun fejl ved netv\u00e6rksfejl. Manglende tjek for response.ok medf\u00f8rer at koden fors\u00f8ger at lave en blob af en fejlmeddelelse (404/500).",
+      "auto_fixable": false,
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 103,
+      "severity": "warning",
+      "category": "bug",
+      "message": "handleReset t\u00f8mmer generations-arrayet fuldst\u00e6ndigt, hvilket sletter savedImages fra visningen i stedet for at g\u00e5 tilbage til den oprindelige tilstand.",
+      "auto_fixable": false,
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 245,
+      "severity": "warning",
+      "category": "style",
+      "message": "Logikken for at v\u00e6lge et billede i historikken ved at flytte elementet til slutningen af arrayet er destruktiv for den kronologiske r\u00e6kkef\u00f8lge. Brug i stedet en 'selectedId' state.",
+      "auto_fixable": false,
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 1,
+      "severity": "error",
+      "category": "bug",
+      "message": "Referencen 'React.FormEvent' p\u00e5 linje 16 kr\u00e6ver, at 'React' er importeret, eller at 'FormEvent' importeres direkte fra 'react'.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "import { useState } from 'react';",
+        "new": "import React, { useState } from 'react';"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 28,
+      "severity": "warning",
+      "category": "bug",
+      "message": "URL-sammens\u00e6tning er s\u00e5rbar over for manglende separator ('/') mellem 'basePath' og 'app', hvilket kan f\u00f8re til forkerte redirects.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "window.location.href = `${basePath}app`;",
+        "new": "window.location.href = `${basePath}${basePath.endsWith('/') ? '' : '/'}app`;"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 28,
+      "severity": "info",
+      "category": "performance",
+      "message": "Brug af 'window.location.href' tvinger en fuld genindl\u00e6sning af browseren. I en React-applikation b\u00f8r man bruge en router-baseret navigation (f.eks. 'useNavigate' fra react-router-dom).",
+      "auto_fixable": false,
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 22,
+      "severity": "info",
+      "category": "unused",
+      "message": "State-variablen 'creatingNew' og dens tilh\u00f8rende setter (linje 49) bliver aldrig brugt til at styre UI-logik.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  const [creatingNew, setCreatingNew] = useState(false);",
+        "new": ""
+      },
+      "file": "src/components/SettingsClient.tsx"
+    },
+    {
+      "line": 47,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Risiko for stale state closure. Brug functional update 'prev => [...prev, newGuide]' for at sikre korrekt state ved hurtige klik.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "      setStyleGuides([...styleGuides, newGuide]);",
+        "new": "      setStyleGuides(prev => [...prev, newGuide]);"
+      },
+      "file": "src/components/SettingsClient.tsx"
+    },
+    {
+      "line": 58,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Brug functional update 'prev => prev.filter(...)' for at sikre, at sletningen tager udgangspunkt i den nyeste state.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "      setStyleGuides(styleGuides.filter(g => g.id !== id));",
+        "new": "      setStyleGuides(prev => prev.filter(g => g.id !== id));"
+      },
+      "file": "src/components/SettingsClient.tsx"
+    },
+    {
+      "line": 69,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Ved opdatering af lister i state b\u00f8r functional update benyttes for at undg\u00e5 race conditions.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    setStyleGuides(styleGuides.map(g => g.id === updated.id ? updated : g));",
+        "new": "    setStyleGuides(prev => prev.map(g => g.id === updated.id ? updated : g));"
+      },
+      "file": "src/components/SettingsClient.tsx"
+    },
+    {
+      "line": 178,
+      "severity": "warning",
+      "category": "style",
+      "message": "Interaktivt div-element mangler ARIA-rolle (role=\"button\") og keyboard event handlers (onKeyDown) for accessibility.",
+      "auto_fixable": false,
+      "file": "src/components/SettingsClient.tsx"
+    },
+    {
+      "line": 49,
+      "severity": "unused",
+      "category": "unused",
+      "message": "Kald til setCreatingNew er overfl\u00f8digt, da state-variablen ikke l\u00e6ses nogen steder.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "      setCreatingNew(false);",
+        "new": ""
+      },
+      "file": "src/components/SettingsClient.tsx"
+    },
+    {
+      "line": 16,
+      "severity": "error",
+      "category": "bug",
+      "message": "State initialiseres kun ved mount via useState(guide.X). Hvis 'guide' proppen opdateres udefra (f.eks. ved skift af guide i en liste), vil editoren stadig vise data fra den forrige guide.",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 59,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "handleGenerate forts\u00e6tter til API-kaldet for generering selvom handleSave fejler. handleSave fanger fejlen internt og returnerer intet, s\u00e5 handleGenerate kan ikke vide om gem-aktionen lykkedes.",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 134,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Betinget rendering af textarea ({guideContent && ...}) forhindrer brugeren i at skrive en stilguide manuelt fra bunden, hvis den er tom i forvejen.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "{guideContent && (",
+        "new": "{true && ("
+      },
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 42,
+      "severity": "info",
+      "category": "performance",
+      "message": "Multiple setTimeouts p\u00e5 'success' og 'error' states mangler cleanup-logik. Dette kan f\u00f8re til race conditions, hvor en gammel timeout fjerner en ny succes-besked.",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 22,
+      "severity": "error",
+      "category": "bug",
+      "message": "Local state (rawText, instruction, etc.) initialiseres kun ved mount. Hvis 'transcription' prop opdateres fra parent, vil komponentens state v\u00e6re out-of-sync (Derived State issue).",
+      "auto_fixable": false,
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 101,
+      "severity": "error",
+      "category": "bug",
+      "message": "handleProcess forts\u00e6tter med at kalde processTranscription, selv hvis handleSaveRawText fejler, da fejlen fanges internt i handleSaveRawText.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    if (hasChanges) {\n      await handleSaveRawText();\n    }",
+        "new": "    if (hasChanges) {\n      try {\n        await handleSaveRawText();\n        if (error) return; // Stop hvis save fejlede\n      } catch (err) {\n        return;\n      }\n    }"
+      },
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 45,
+      "severity": "info",
+      "category": "error_handling",
+      "message": "Silent fail i useEffect. Selvom fejl er 'optional', b\u00f8r de logges til konsollen eller en tracking service for debugging.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "      } catch {\n        // Ignore errors - style guides are optional\n      }",
+        "new": "      } catch (err) {\n        console.error('Failed to load style guides:', err);\n      }"
+      },
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 60,
+      "severity": "info",
+      "category": "error_handling",
+      "message": "Silent fail i useEffect ved indl\u00e6sning af billeder.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "      } catch {\n        // Ignore errors - images are optional\n      }",
+        "new": "      } catch (err) {\n        console.error('Failed to load images:', err);\n      }"
+      },
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 126,
+      "severity": "warning",
+      "category": "style",
+      "message": "Brug af deprecated document.execCommand('copy'). Selvom det er en fallback, er det for\u00e6ldet praksis.",
+      "auto_fixable": false,
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 167,
+      "severity": "info",
+      "category": "performance",
+      "message": "getAudioUrl(transcription.id) kaldes ved hver render. Hvis funktionen udf\u00f8rer beregninger eller streng-manipulation, b\u00f8r den memoizes.",
+      "auto_fixable": false,
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 240,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Mapping af savedImages array sker direkte i render-tr\u00e6et. Dette kan skabe un\u00f8dvendige re-renders af ImageGenerator komponenten.",
+      "auto_fixable": false,
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 204,
+      "severity": "error",
+      "category": "performance",
+      "message": "URL.createObjectURL kaldes direkte i render-metoden. Dette skaber en hukommelsesl\u00e6k, da en ny URL genereres ved hver render-cyklus. URL'en b\u00f8r genereres i mediaRecorder.onstop og gemmes i en state.",
+      "auto_fixable": false,
+      "file": "src/components/UploadForm.tsx"
+    },
+    {
+      "line": 32,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Komponenten mangler en cleanup-funktion (useEffect return), der stopper MediaRecorder og rydder setInterval. Hvis brugeren navigerer v\u00e6k under optagelse, vil mikrofonen forblive aktiv og timeren forts\u00e6tte.",
+      "auto_fixable": false,
+      "file": "src/components/UploadForm.tsx"
+    },
+    {
+      "line": 68,
+      "severity": "security",
+      "category": "security",
+      "message": "MediaStream (fra getUserMedia) bliver kun stoppet i onstop-eventet. Hvis streamen fejler eller komponenten unmountes f\u00f8r onstop, kan mikrofon-indikatoren forblive aktiv i browseren.",
+      "auto_fixable": false,
+      "file": "src/components/UploadForm.tsx"
+    },
+    {
+      "line": 91,
+      "severity": "info",
+      "category": "performance",
+      "message": "Der kaldes aldrig URL.revokeObjectURL for de oprettede blobs. Dette vil over tid \u00f8ge hukommelsesforbruget i browser-sessionen, is\u00e6r ved mange optagelser.",
+      "auto_fixable": false,
+      "file": "src/components/UploadForm.tsx"
+    },
+    {
+      "line": 159,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Catch-blokken bruger err.message direkte. Dette kan eksponere tekniske API-fejlbeskeder til slutbrugeren i stedet for en venlig fejlmeddelelse.",
+      "auto_fixable": false,
+      "file": "src/components/UploadForm.tsx"
+    },
+    {
+      "line": 104,
+      "severity": "bug",
+      "category": "bug",
+      "message": "Intervallet (timerRef) ryddes kun manuelt i onstop. Hvis startRecording kaldes igen uden at den forrige er stoppet korrekt, mister man referencen til det aktive interval (zombie timer).",
+      "auto_fixable": false,
+      "file": "src/components/UploadForm.tsx"
+    },
+    {
+      "line": 139,
+      "severity": "style",
+      "category": "bug",
+      "message": "Extension-detektion baseret p\u00e5 audioBlob.type er upr\u00e6cis. Nogle browsere rapporterer 'audio/mp4;codecs=...', hvilket kan resultere i forkerte filendelser.",
+      "auto_fixable": false,
+      "file": "src/components/UploadForm.tsx"
+    },
+    {
+      "line": 21,
+      "severity": "warning",
+      "category": "style",
+      "message": "useEffect mangler 'loadSummary' som afh\u00e6ngighed. Enten pak 'loadSummary' ind i useCallback, eller flyt funktionen ind i useEffect for at undg\u00e5 potentielle bugs ved fremtidige \u00e6ndringer.",
+      "auto_fixable": false,
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 34,
+      "severity": "info",
+      "category": "performance",
+      "message": "Intl.NumberFormat b\u00f8r instansieres \u00e9n gang uden for komponenten i stedet for ved hvert kald af formatDKK for at forbedre performance.",
+      "auto_fixable": false,
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 53,
+      "severity": "error",
+      "category": "bug",
+      "message": "formatMonth vil fejle eller returnere 'undefined' hvis strengen 'month' ikke indeholder en bindestreg, eller hvis m\u00e5neden er uden for 1-12 intervallet. parseInt b\u00f8r ogs\u00e5 have radix 10.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    return `${months[parseInt(m) - 1]} ${year}`;",
+        "new": "    const monthIdx = parseInt(m, 10) - 1;\n    return (months[monthIdx] || 'Ukendt') + ' ' + (year || '');"
+      },
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 126,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Risiko for crash hvis 'summary.by_operation' er null/undefined. Brug optional chaining eller tjek for eksistens f\u00f8r .length.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "              {summary.by_operation.length > 0 && (",
+        "new": "              {summary.by_operation?.length > 0 && ("
+      },
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 142,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Risiko for crash hvis 'summary.by_month' er null/undefined. Brug optional chaining eller tjek for eksistens f\u00f8r .length.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "              {summary.by_month.length > 0 && (",
+        "new": "              {summary.by_month?.length > 0 && ("
+      },
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 20,
+      "severity": "error",
+      "category": "bug",
+      "message": "handleResponse vil kaste en SyntaxError ved succesfulde svar uden body (f.eks. 204 No Content), da response.json() ikke kan parse en tom streng.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  return response.json();",
+        "new": "  return response.status === 204 ? {} as T : response.json();"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 44,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "logout funktionen ignorerer potentielle server-fejl. Den b\u00f8r tjekke response.ok eller bruge handleResponse.",
+      "auto_fixable": false,
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 135,
+      "severity": "info",
+      "category": "style",
+      "message": "Gentaget kode i delete-metoder (135, 146, 191, 282). Fejlh\u00e5ndteringen b\u00f8r abstraheres eller bruge handleResponse for at overholde DRY-princippet.",
+      "auto_fixable": false,
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 8,
+      "severity": "warning",
+      "category": "style",
+      "message": "Hardcoded dev-URL 'http://localhost:8090/api'. B\u00f8r tr\u00e6kkes ud i en milj\u00f8variabel (f.eks. import.meta.env.VITE_API_URL).",
+      "auto_fixable": false,
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 274,
+      "severity": "info",
+      "category": "style",
+      "message": "Inkonsistent URL-struktur: '/images/?' indeholder en trailing slash, som mangler i de andre endpoints (f.eks. '/transcriptions?').",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  const res = await fetch(`${API_BASE}/images/?skip=${skip}&limit=${limit}`, {",
+        "new": "  const res = await fetch(`${API_BASE}/images?skip=${skip}&limit=${limit}`, {"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 57,
+      "severity": "info",
+      "category": "error_handling",
+      "message": "getMe() bruger ikke handleResponse, hvilket g\u00f8r fejlh\u00e5ndteringen inkonsistent i forhold til resten af servicen.",
+      "auto_fixable": false,
+      "file": "src/lib/api.ts"
+    }
+  ]
+}

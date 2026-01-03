@@ -62,7 +62,7 @@ def transcribe_audio(audio_path: Path, prompt: str = "") -> TranscriptionResult:
 
     mp3_path = None
     try:
-        client = OpenAI()
+        client = OpenAI(api_key=OPENAI_API_KEY)
         duration = get_audio_duration(audio_path)
 
         # Convert to mp3 first for reliable API compatibility

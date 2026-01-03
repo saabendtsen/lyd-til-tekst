@@ -47,9 +47,13 @@ export default function UsageDisplay({ onError }: Props) {
   };
 
   const formatMonth = (month: string) => {
-    const [year, m] = month.split('-');
+    const parts = month.split('-');
+    if (parts.length !== 2) return month;
+    const [year, m] = parts;
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-    return `${months[parseInt(m) - 1]} ${year}`;
+    const monthIdx = parseInt(m, 10) - 1;
+    if (monthIdx < 0 || monthIdx >= 12) return month;
+    return `${months[monthIdx]} ${year}`;
   };
 
   if (loading) {
@@ -130,7 +134,7 @@ export default function UsageDisplay({ onError }: Props) {
               </div>
 
               {/* By operation */}
-              {summary.by_operation.length > 0 && (
+              {summary.by_operation?.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 mb-2">Fordelt på type</h4>
                   <div className="space-y-2">
@@ -147,7 +151,7 @@ export default function UsageDisplay({ onError }: Props) {
               )}
 
               {/* By month */}
-              {summary.by_month.length > 0 && (
+              {summary.by_month?.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 mb-2">Fordelt på måned</h4>
                   <div className="space-y-2">

@@ -1,5 +1,5 @@
 """Image generation routes with multi-turn support."""
-import json
+import base64
 from datetime import datetime
 from typing import List, Optional
 
@@ -164,8 +164,7 @@ def generate_image_endpoint(
         transcription_id=request.transcription_id
     )
     db.add(generation)
-    db.commit()
-    db.refresh(generation)
+    db.flush()  # Get ID without committing
 
     # Log API usage
     cost = calculate_image_generation_cost(
@@ -191,6 +190,7 @@ def generate_image_endpoint(
     )
     db.add(usage)
     db.commit()
+    db.refresh(generation)
 
     return generation_to_response(generation)
 
@@ -219,7 +219,6 @@ def get_image_data(
             detail="Ingen billeddata"
         )
 
-    import base64
     image_bytes = base64.b64decode(generation.image_data)
 
     return Response(
