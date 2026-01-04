@@ -8,7 +8,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from ..database import get_db, ImageGeneration, User, ApiUsage
+from ..database import get_db, ImageGeneration, Transcription, User, ApiUsage
 from ..auth.deps import get_current_user
 from ..utils.cost_calculator import calculate_image_generation_cost
 from .generator import generate_image, ConversationTurn, IMAGE_MODEL
@@ -116,6 +116,18 @@ def generate_image_endpoint(
     For multi-turn editing, pass session_id with the previous generation's ID.
     The model will use the conversation history to understand context.
     """
+    # Validate transcription_id belongs to user if provided
+    if request.transcription_id:
+        transcription = db.query(Transcription).filter(
+            Transcription.id == request.transcription_id,
+            Transcription.user_id == user.id
+        ).first()
+        if not transcription:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Transskription ikke fundet"
+            )
+
     # Build conversation history if continuing a session
     conversation_history = None
     parent_id = None
@@ -219,7 +231,13 @@ def get_image_data(
             detail="Ingen billeddata"
         )
 
-    image_bytes = base64.b64decode(generation.image_data)
+    try:
+        image_bytes = base64.b64decode(generation.image_data)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Korrupt billeddata"
+        )
 
     return Response(
         content=image_bytes,

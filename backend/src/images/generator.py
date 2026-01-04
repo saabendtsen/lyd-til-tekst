@@ -4,13 +4,21 @@ Supports multi-turn conversational editing where users can iteratively
 refine generated images through follow-up prompts.
 """
 import base64
+import binascii
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List
 
+from google import genai
+from google.genai import types
+
 from ..config import GEMINI_API_KEY_FREE, GEMINI_API_KEY_PAID
 
-IMAGE_MODEL = "gemini-3-pro-image-preview"
+logger = logging.getLogger(__name__)
+
+# Use imagen-3.0-generate-002 for image generation
+IMAGE_MODEL = "imagen-3.0-generate-002"
 
 # System instruction for image generation
 IMAGE_SYSTEM_INSTRUCTION = """You are an image generation assistant. When given text content:
@@ -72,7 +80,7 @@ def generate_image(
         )
         if result.success:
             return result
-        print(f"  Gemini free tier fejlede: {result.error}, prøver paid tier...")
+        logger.warning("Gemini free tier failed: %s, trying paid tier...", result.error)
 
     # Fallback to paid tier
     if GEMINI_API_KEY_PAID:
@@ -82,7 +90,7 @@ def generate_image(
         )
         if result.success:
             return result
-        print(f"  Gemini paid tier fejlede: {result.error}")
+        logger.error("Gemini paid tier failed: %s", result.error)
 
     return ImageGenerationResult(
         success=False,
@@ -100,9 +108,6 @@ def _generate_with_gemini(
 ) -> ImageGenerationResult:
     """Generate image using Gemini API."""
     try:
-        from google import genai
-        from google.genai import types
-
         client = genai.Client(api_key=api_key)
 
         # Map resolution to API format
@@ -129,15 +134,24 @@ def _generate_with_gemini(
                     parts.append(types.Part(text=turn.text))
                 if turn.image_base64:
                     # Include previous image with thought_signature for multi-turn
+                    try:
+                        image_data = base64.b64decode(turn.image_base64)
+                    except (binascii.Error, ValueError) as e:
+                        # Skip invalid base64 image data
+                        logger.warning("Skipping turn with invalid base64 image data: %s", e)
+                        continue
                     image_part_kwargs = {
                         "inline_data": types.Blob(
-                            data=base64.b64decode(turn.image_base64),
+                            data=image_data,
                             mime_type=turn.image_mime_type or "image/png"
                         )
                     }
                     # thought_signature is required for model-generated images
                     if turn.thought_signature:
-                        image_part_kwargs["thought_signature"] = base64.b64decode(turn.thought_signature)
+                        try:
+                            image_part_kwargs["thought_signature"] = base64.b64decode(turn.thought_signature)
+                        except (binascii.Error, ValueError) as e:
+                            logger.warning("Invalid thought_signature base64, continuing without: %s", e)
                     parts.append(types.Part(**image_part_kwargs))
                 if parts:
                     history.append(types.Content(role=turn.role, parts=parts))
@@ -220,6 +234,9 @@ def save_image_to_file(image_base64: str, filename: str, output_dir: Path) -> Pa
     # Sanitize filename to prevent path traversal
     safe_filename = Path(filename).name
     filepath = output_dir / safe_filename
-    image_bytes = base64.b64decode(image_base64)
+    try:
+        image_bytes = base64.b64decode(image_base64)
+    except (binascii.Error, ValueError) as e:
+        raise ValueError(f"Invalid base64 image data: {e}")
     filepath.write_bytes(image_bytes)
     return filepath

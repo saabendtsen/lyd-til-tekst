@@ -13,10 +13,6 @@ export default function UsageDisplay({ onError }: Props) {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    loadSummary();
-  }, []);
-
   const loadSummary = async () => {
     try {
       const data = await getUsageSummary();
@@ -27,6 +23,10 @@ export default function UsageDisplay({ onError }: Props) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadSummary();
+  }, []);
 
   const formatDKK = (amount: number) => {
     return new Intl.NumberFormat('da-DK', {

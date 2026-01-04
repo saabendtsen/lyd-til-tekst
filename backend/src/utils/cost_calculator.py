@@ -41,9 +41,10 @@ def calculate_whisper_cost(duration_seconds: float, model: str = "whisper-1") ->
     Returns:
         Cost in USD
     """
-    minutes = duration_seconds / 60
-    pricing = PRICING["openai"].get(model, PRICING["openai"]["whisper-1"])
-    return minutes * pricing["per_minute"]
+    minutes = max(0.0, duration_seconds) / 60
+    openai_pricing = PRICING.get("openai", {})
+    pricing = openai_pricing.get(model, openai_pricing.get("whisper-1", {"per_minute": 0.006}))
+    return minutes * pricing.get("per_minute", 0.006)
 
 
 def calculate_gemini_cost(
@@ -62,9 +63,11 @@ def calculate_gemini_cost(
     Returns:
         Cost in USD
     """
-    pricing = PRICING["gemini"].get(model, PRICING["gemini"]["gemini-2.0-flash"])
-    input_cost = (input_tokens / 1_000_000) * pricing["input_per_million"]
-    output_cost = (output_tokens / 1_000_000) * pricing["output_per_million"]
+    gemini_pricing = PRICING.get("gemini", {})
+    default_pricing = {"input_per_million": 0.10, "output_per_million": 0.40}
+    pricing = gemini_pricing.get(model, gemini_pricing.get("gemini-2.0-flash", default_pricing))
+    input_cost = (max(0, input_tokens) / 1_000_000) * pricing.get("input_per_million", 0.10)
+    output_cost = (max(0, output_tokens) / 1_000_000) * pricing.get("output_per_million", 0.40)
     return input_cost + output_cost
 
 
@@ -88,19 +91,26 @@ def calculate_image_generation_cost(
     Returns:
         Cost in USD
     """
-    pricing = PRICING["gemini"].get(model, PRICING["gemini"]["gemini-3-pro-image-preview"])
+    gemini_pricing = PRICING.get("gemini", {})
+    default_image_pricing = {
+        "input_per_million": 2.00,
+        "output_per_million": 12.00,
+        "image_output_1k_2k": 0.134,
+        "image_output_4k": 0.24
+    }
+    pricing = gemini_pricing.get(model, gemini_pricing.get("gemini-3-pro-image-preview", default_image_pricing))
 
-    # Text token costs
-    input_cost = (input_tokens / 1_000_000) * pricing["input_per_million"]
-    output_cost = (output_tokens / 1_000_000) * pricing["output_per_million"]
+    # Text token costs (ensure non-negative)
+    input_cost = (max(0, input_tokens) / 1_000_000) * pricing.get("input_per_million", 2.00)
+    output_cost = (max(0, output_tokens) / 1_000_000) * pricing.get("output_per_million", 12.00)
 
     # Image output cost (only for image-capable models)
     image_cost = 0.0
     if images_generated > 0:
         if resolution == "4k":
-            image_cost = images_generated * pricing.get("image_output_4k", 0)
+            image_cost = images_generated * pricing.get("image_output_4k", 0.24)
         else:  # 1k or 2k
-            image_cost = images_generated * pricing.get("image_output_1k_2k", 0)
+            image_cost = images_generated * pricing.get("image_output_1k_2k", 0.134)
 
     return input_cost + output_cost + image_cost
 

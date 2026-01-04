@@ -1,70 +1,96 @@
 """Auth dependencies for FastAPI routes."""
 from typing import Optional
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db, User
 from .utils import decode_token
 
 
-def get_token_from_cookie(request: Request) -> Optional[str]:
-    """Extract JWT token from httpOnly cookie."""
-    return request.cookies.get("access_token")
+def _validate_token_and_get_user(
+    token: Optional[str],
+    db: Session,
+    raise_on_error: bool = True
+) -> Optional[User]:
+    """
+    Validate JWT token and return the user.
 
+    Args:
+        token: JWT token from cookie
+        db: Database session
+        raise_on_error: If True, raise HTTPException on validation failure.
+                       If False, return None on failure.
 
-def get_current_user(
-    request: Request,
-    db: Session = Depends(get_db)
-) -> User:
-    """Get the current authenticated user from JWT cookie."""
-    token = get_token_from_cookie(request)
+    Returns:
+        User if valid, None if invalid and raise_on_error is False
 
+    Raises:
+        HTTPException if validation fails and raise_on_error is True
+    """
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Ikke logget ind"
-        )
+        if raise_on_error:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Ikke logget ind"
+            )
+        return None
 
     payload = decode_token(token)
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Ugyldig eller udløbet session"
-        )
+        if raise_on_error:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Ugyldig eller udløbet session"
+            )
+        return None
+
+    # Check if 'sub' exists in payload before database lookup
+    sub = payload.get("sub")
+    if not sub:
+        if raise_on_error:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Ugyldig bruger-ID i token"
+            )
+        return None
 
     try:
-        user_id = int(payload.get("sub", 0))
+        user_id = int(sub)
     except (ValueError, TypeError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Ugyldig bruger-ID i token"
-        )
+        if raise_on_error:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Ugyldig bruger-ID i token"
+            )
+        return None
+
     user = db.get(User, user_id)
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Bruger ikke fundet"
-        )
+        if raise_on_error:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Bruger ikke fundet"
+            )
+        return None
 
     return user
 
 
+def get_current_user(
+    access_token: Optional[str] = Cookie(default=None),
+    db: Session = Depends(get_db)
+) -> User:
+    """Get the current authenticated user from JWT cookie."""
+    user = _validate_token_and_get_user(access_token, db, raise_on_error=True)
+    # Type narrowing: we know user is not None because raise_on_error=True
+    assert user is not None
+    return user
+
+
 def get_optional_user(
-    request: Request,
+    access_token: Optional[str] = Cookie(default=None),
     db: Session = Depends(get_db)
 ) -> Optional[User]:
     """Get current user if logged in, None otherwise."""
-    token = get_token_from_cookie(request)
-    if not token:
-        return None
-
-    payload = decode_token(token)
-    if not payload:
-        return None
-
-    try:
-        user_id = int(payload.get("sub", 0))
-    except (ValueError, TypeError):
-        return None
-    return db.get(User, user_id)
+    return _validate_token_and_get_user(access_token, db, raise_on_error=False)

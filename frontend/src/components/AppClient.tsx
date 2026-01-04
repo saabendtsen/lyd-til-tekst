@@ -25,7 +25,8 @@ export default function AppClient({ basePath }: Props) {
         return;
       }
       setUser(me);
-    } catch {
+    } catch (err) {
+      console.error('Kunne ikke hente brugerdata:', err);
       window.location.href = basePath;
     } finally {
       setLoading(false);

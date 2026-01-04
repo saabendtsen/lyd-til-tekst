@@ -1,8 +1,10 @@
 """Auth routes: register, login, logout."""
+import secrets
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from ..database import get_db, User
 from .utils import hash_password, verify_password, create_access_token
@@ -13,8 +15,8 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=6)
-    email: Optional[str] = None
+    password: str = Field(..., min_length=12)
+    email: Optional[EmailStr] = None
 
 
 class LoginRequest(BaseModel):
@@ -65,11 +67,11 @@ def register(
     try:
         db.commit()
         db.refresh(user)
-    except Exception:
+    except IntegrityError:
         db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Kunne ikke oprette bruger"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Brugernavn eller email er allerede i brug"
         )
 
     # Set auth cookie
@@ -95,7 +97,13 @@ def login(
     """Login and get auth cookie."""
     user = db.query(User).filter(User.username == request.username).first()
 
-    if not user or not verify_password(request.password, user.password_hash):
+    # Always verify password to prevent timing attacks for user enumeration
+    # Use a dummy hash if user doesn't exist to maintain constant time
+    dummy_hash = "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4m9JHXQa7x4.0Z7q"
+    password_hash = user.password_hash if user else dummy_hash
+    password_valid = verify_password(request.password, password_hash)
+
+    if not user or not password_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Forkert brugernavn eller password"

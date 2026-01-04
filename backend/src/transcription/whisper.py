@@ -20,13 +20,13 @@ class TranscriptionResult:
 
 def get_audio_duration(audio_path: Path) -> float:
     """Get audio duration via ffprobe."""
-    result = subprocess.run(
-        ['ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', str(audio_path)],
-        capture_output=True, text=True
-    )
     try:
+        result = subprocess.run(
+            ['ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', str(audio_path)],
+            capture_output=True, text=True, check=True
+        )
         return float(result.stdout.strip())
-    except ValueError:
+    except (subprocess.CalledProcessError, ValueError):
         return 0.0
 
 
@@ -67,6 +67,15 @@ def transcribe_audio(audio_path: Path, prompt: str = "") -> TranscriptionResult:
 
         # Convert to mp3 first for reliable API compatibility
         mp3_path = convert_to_mp3(audio_path)
+
+        # Check file size (Whisper API limit is 25MB)
+        max_size_mb = 25
+        file_size_mb = mp3_path.stat().st_size / (1024 * 1024)
+        if file_size_mb > max_size_mb:
+            return TranscriptionResult(
+                success=False,
+                error=f"Filen er for stor ({file_size_mb:.1f} MB). Max {max_size_mb} MB."
+            )
 
         with open(mp3_path, "rb") as f:
             result = client.audio.transcriptions.create(

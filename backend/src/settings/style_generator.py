@@ -1,8 +1,14 @@
 """Generate style guides from text examples using Gemini."""
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
+from google import genai
+from google.genai import types
+
 from ..config import GEMINI_API_KEY_FREE, GEMINI_API_KEY_PAID, GEMINI_MODEL
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -73,6 +79,7 @@ def generate_style_guide(examples: str, description: Optional[str] = None) -> Ge
         result = _generate_with_gemini(prompt, GEMINI_API_KEY_PAID, tier="paid")
         if result.success:
             return result
+        logger.error("Style guide generation failed on paid tier: %s", result.error)
 
     return GenerationResult(
         success=False,

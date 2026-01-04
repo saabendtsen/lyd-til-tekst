@@ -25,7 +25,7 @@ export default function LoginForm({ basePath }: Props) {
         await register(username, password, email || undefined);
       }
       // Redirect to app
-      window.location.href = `${basePath}app`;
+      window.location.href = `${basePath.endsWith('/') ? basePath : basePath + '/'}app`;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Der opstod en fejl');
     } finally {

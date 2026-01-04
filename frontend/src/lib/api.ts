@@ -62,7 +62,7 @@ export async function getMe(): Promise<User | null> {
       credentials: 'include',
     });
     if (!res.ok) return null;
-    return res.json();
+    return await res.json();
   } catch {
     return null;
   }

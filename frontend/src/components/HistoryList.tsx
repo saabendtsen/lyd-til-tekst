@@ -75,7 +75,7 @@ export default function HistoryList({ onSelect }: Props) {
     );
   }
 
-  if (error) {
+  if (error && transcriptions.length === 0) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
         {error}
