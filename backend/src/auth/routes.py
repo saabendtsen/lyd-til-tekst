@@ -1,5 +1,4 @@
 """Auth routes: register, login, logout."""
-import secrets
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr, Field
@@ -126,7 +125,7 @@ def login(
 @router.post("/logout")
 def logout(response: Response):
     """Logout by clearing the auth cookie."""
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="access_token", httponly=True, secure=True, samesite="lax")
     return {"message": "Logget ud"}
 
 

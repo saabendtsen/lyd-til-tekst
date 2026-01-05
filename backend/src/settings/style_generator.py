@@ -90,9 +90,6 @@ def generate_style_guide(examples: str, description: Optional[str] = None) -> Ge
 def _generate_with_gemini(prompt: str, api_key: str, tier: str = "paid") -> GenerationResult:
     """Generate using Google Gemini API."""
     try:
-        from google import genai
-        from google.genai import types
-
         client = genai.Client(api_key=api_key)
 
         response = client.models.generate_content(

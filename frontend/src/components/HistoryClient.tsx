@@ -22,7 +22,7 @@ export default function HistoryClient({ basePath }: Props) {
       const me = await getMe();
       if (!me) {
         // Only redirect to relative paths to prevent open redirect
-        if (basePath.startsWith('/')) {
+        if (basePath.startsWith('/') && !basePath.startsWith('//')) {
           window.location.href = basePath;
         }
         return;
@@ -30,7 +30,7 @@ export default function HistoryClient({ basePath }: Props) {
       setUser(me);
     } catch (err) {
       console.error('Kunne ikke hente brugerdata:', err);
-      if (basePath.startsWith('/')) {
+      if (basePath.startsWith('/') && !basePath.startsWith('//')) {
         window.location.href = basePath;
       }
     } finally {

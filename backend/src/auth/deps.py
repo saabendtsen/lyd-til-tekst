@@ -46,7 +46,7 @@ def _validate_token_and_get_user(
 
     # Check if 'sub' exists in payload before database lookup
     sub = payload.get("sub")
-    if not sub:
+    if sub is None or sub == "":
         if raise_on_error:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -84,7 +84,8 @@ def get_current_user(
     """Get the current authenticated user from JWT cookie."""
     user = _validate_token_and_get_user(access_token, db, raise_on_error=True)
     # Type narrowing: we know user is not None because raise_on_error=True
-    assert user is not None
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Bruger ikke fundet")
     return user
 
 

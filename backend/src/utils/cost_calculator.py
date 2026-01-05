@@ -109,8 +109,10 @@ def calculate_image_generation_cost(
     if images_generated > 0:
         if resolution == "4k":
             image_cost = images_generated * pricing.get("image_output_4k", 0.24)
-        else:  # 1k or 2k
+        elif resolution in ("1k", "2k"):
             image_cost = images_generated * pricing.get("image_output_1k_2k", 0.134)
+        else:
+            raise ValueError(f"Invalid resolution: {resolution}. Must be '1k', '2k', or '4k'.")
 
     return input_cost + output_cost + image_cost
 

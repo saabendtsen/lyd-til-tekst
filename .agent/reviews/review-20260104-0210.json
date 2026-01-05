@@ -1,0 +1,729 @@
+{
+  "timestamp": "2026-01-04T02:10:14.152503",
+  "project": "lyd-til-tekst",
+  "commit": "cd30800b6b72386fac68a8c83621ffaa5fae8618",
+  "previous_commit": "9727d4711f9639422e09cb51b25b72d7ba84308d",
+  "files_reviewed": 16,
+  "summary": {
+    "total_issues": 76,
+    "auto_fixable": 24,
+    "by_severity": {
+      "error": 20,
+      "warning": 33,
+      "info": 21
+    },
+    "by_category": {
+      "style": 14,
+      "performance": 21,
+      "security": 6,
+      "bug": 19,
+      "error_handling": 16
+    }
+  },
+  "issues": [
+    {
+      "line": 15,
+      "severity": "warning",
+      "category": "style",
+      "message": "Koden i get_current_user og get_optional_user er n\u00e6sten identisk (DRY princip). Overvej at refaktorere token-validering og bruger-opslag til en privat hj\u00e6lpefunktion eller lad den ene afh\u00e6nge af den anden.",
+      "auto_fixable": false,
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 10,
+      "severity": "info",
+      "category": "style",
+      "message": "Manuel udtr\u00e6kning af cookies fra Request-objektet forhindrer FastAPI i automatisk at dokumentere 'access_token' i OpenAPI/Swagger interfacet. Brug fastapi.Cookie i stedet.",
+      "auto_fixable": false,
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 39,
+      "severity": "info",
+      "category": "performance",
+      "message": "Ved at bruge default-v\u00e6rdien 0 for 'sub', udf\u00f8res et un\u00f8dvendigt database-opslag (db.get), selvom tokenet mangler et bruger-ID. Tjek om 'sub' findes i payload f\u00f8r database-kaldet.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "user_id = int(payload.get(\"sub\", 0))",
+        "new": "user_id = payload.get(\"sub\")\n    if not user_id:\n        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=\"Ugyldig token\")\n    user_id = int(user_id)"
+      },
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 46,
+      "severity": "info",
+      "category": "performance",
+      "message": "Hvis get_current_user og get_optional_user kaldes i samme request-cyklus, vil databasen blive forespurgt to gange. Da de er defineret som separate funktioner, cacher FastAPI ikke resultatet p\u00e5 tv\u00e6rs af dem.",
+      "auto_fixable": false,
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 16,
+      "severity": "warning",
+      "category": "security",
+      "message": "Minimum passwordl\u00e6ngde p\u00e5 6 er for lavt til moderne sikkerhedsstandarder. Overvej mindst 12 tegn.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "password: str = Field(..., min_length=6)",
+        "new": "password: str = Field(..., min_length=12)"
+      },
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 17,
+      "severity": "info",
+      "category": "bug",
+      "message": "Email-feltet mangler validering. Brug Pydantics 'EmailStr' for at sikre korrekt format.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 68,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Broad exception catch (Exception) b\u00f8r undg\u00e5s. Fang i stedet specifikke database-fejl (f.eks. sqlalchemy.exc.IntegrityError).",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 100,
+      "severity": "warning",
+      "category": "security",
+      "message": "Timing attack s\u00e5rbarhed: 'if not user' checker eksistensen af brugeren f\u00f8r verify_password, hvilket kan bruges til user enumeration via svartid.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 51,
+      "severity": "info",
+      "category": "performance",
+      "message": "Sekventielle databaseopslag for b\u00e5de brugernavn og email kan medf\u00f8re race conditions og er ineffektivt. Brug unikke constraints i DB i stedet.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 94,
+      "severity": "performance",
+      "category": "performance",
+      "message": "Imports af 'google.genai' b\u00f8r placeres \u00f8verst i filen for at undg\u00e5 un\u00f8dig overhead ved hvert funktionskald.",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 72,
+      "severity": "warning",
+      "category": "style",
+      "message": "Brug 'logging' modul i stedet for 'print' i en service for bedre sporbarhed og log management.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "print(f\"  Gemini free tier fejlede: {result.error}, pr\u00f8ver paid tier...\")",
+        "new": "logger.warning(f\"Gemini free tier failed: {result.error}, trying paid tier...\")"
+      },
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 14,
+      "severity": "error",
+      "category": "bug",
+      "message": "Modelnavnet 'gemini-3-pro-image-preview' eksisterer ikke. Korrekt model er typisk 'imagen-3.0-generate-001' eller lignende i Google GenAI SDK.",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 126,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "base64.b64decode vil crashe programmet (binascii.Error), hvis 'thought_signature' er korrupt eller ikke-valid base64.",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 195,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Manglende validering eller try-except omkring base64 decoding af billeddata f\u00f8r filskrivning.",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 12,
+      "severity": "warning",
+      "category": "security",
+      "message": "API keys importeres fra en lokal config fil. S\u00f8rg for at disse hentes fra environment variables i produktion for at undg\u00e5 l\u00e6kage.",
+      "auto_fixable": false,
+      "file": "src/images/generator.py"
+    },
+    {
+      "line": 66,
+      "severity": "warning",
+      "category": "performance",
+      "message": "N+1 query problem: Funktionen henter historik ved at udf\u00f8re en database-foresp\u00f8rgsel i en loop for hver tur i samtalen.",
+      "auto_fixable": false,
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 66,
+      "severity": "error",
+      "category": "performance",
+      "message": "Hukommelsesproblem: Hele base64-billedstrengen hentes fra databasen for hver historik-entitet i loopen. Dette vil medf\u00f8re ekstremt h\u00f8jt RAM-forbrug ved lange samtaler.",
+      "auto_fixable": false,
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 135,
+      "severity": "error",
+      "category": "security",
+      "message": "Insecure Direct Object Reference (IDOR): 'transcription_id' valideres ikke mod den nuv\u00e6rende bruger. En bruger kan linke et billede til en vilk\u00e5rlig transcription_id.",
+      "auto_fixable": false,
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 182,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Manglende fejlh\u00e5ndtering ved base64-dekodning. Hvis 'image_data' er korrupt, vil 'b64decode' kaste en binascii.Error og crashe endpointet.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    image_bytes = base64.b64decode(generation.image_data)",
+        "new": "    try:\n        image_bytes = base64.b64decode(generation.image_data)\n    except Exception:\n        raise HTTPException(status_code=500, detail=\"Kunne ikke dekode billeddata\")"
+      },
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 246,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Potentiel IntegrityError: Sletning af en generation vil fejle hvis andre r\u00e6kker refererer til den som 'parent_id', medmindre databasen er sat op med CASCADE delete.",
+      "auto_fixable": false,
+      "file": "src/images/routes.py"
+    },
+    {
+      "line": 88,
+      "severity": "info",
+      "category": "performance",
+      "message": "Imports b\u00f8r placeres \u00f8verst i filen (PEP 8) for at undg\u00e5 un\u00f8dvendig import-overhead ved hvert funktionskald.",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 78,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Den faktiske fejlbesked fra API-kaldet (f.eks. Rate Limit eller Invalid Key) undertrykkes og erstattes af en generisk besked, hvilket g\u00f8r debugging sv\u00e6rt.",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 100,
+      "severity": "info",
+      "category": "bug",
+      "message": "Token-forbrug (usage_metadata) logges ikke, hvis response.text kaster en ValueError (f.eks. ved sikkerhedsfiltrering), selvom tokens kan v\u00e6re brugt.",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 70,
+      "severity": "warning",
+      "category": "performance",
+      "message": "OpenAI client initialiseres inde i funktionen. Flyt den udenfor funktionen for at genbruge forbindelser via connection pooling.",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 26,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "subprocess.run() mangler check=True. Hvis ffprobe fejler (f.eks. ved korrupt fil eller manglende bin\u00e6r), returneres 0.0 uden fejlmeddelelse.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    result = subprocess.run(['ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', str(audio_path)], capture_output=True, text=True)",
+        "new": "    result = subprocess.run(['ffprobe', '-v', 'quiet', '-show_entries', 'format=duration', '-of', 'csv=p=0', str(audio_path)], capture_output=True, text=True, check=True)"
+      },
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 38,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Den midlertidige MP3-fil oprettes i samme mappe som kilden. Dette kan fejle ved manglende skriverettigheder eller give race conditions ved samtidige kald. Brug tempfile modulet.",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 77,
+      "severity": "error",
+      "category": "performance",
+      "message": "Whisper API har en gr\u00e6nse p\u00e5 25MB. Der mangler validering af filst\u00f8rrelsen efter konvertering f\u00f8r upload.",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 41,
+      "severity": "info",
+      "category": "performance",
+      "message": "Filen konverteres altid til MP3, selv hvis kildefilen allerede er en optimeret MP3.",
+      "auto_fixable": false,
+      "file": "src/transcription/whisper.py"
+    },
+    {
+      "line": 44,
+      "severity": "error",
+      "category": "bug",
+      "message": "Beregning af pris kan blive negativ hvis duration_seconds er mindre end 0.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    minutes = duration_seconds / 60",
+        "new": "    minutes = max(0.0, duration_seconds) / 60"
+      },
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 45,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Direkte adgang til PRICING['openai'] kan kaste KeyError hvis n\u00f8glen mangler. Brug .get()",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    pricing = PRICING[\"openai\"].get(model, PRICING[\"openai\"][\"whisper-1\"])",
+        "new": "    openai_pricing = PRICING.get(\"openai\", {})\n    pricing = openai_pricing.get(model, openai_pricing.get(\"whisper-1\", {}))"
+      },
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 63,
+      "severity": "error",
+      "category": "bug",
+      "message": "Tokens kan ikke v\u00e6re negative; mangler validering for at undg\u00e5 negative omkostninger.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    input_cost = (input_tokens / 1_000_000) * pricing[\"input_per_million\"]",
+        "new": "    input_cost = (max(0, input_tokens) / 1_000_000) * pricing.get(\"input_per_million\", 0)"
+      },
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 97,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Logisk fallback i resolution: Alle v\u00e6rdier der ikke er '4k' (inkl. fejlstavninger) takseres som '1k/2k'.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 87,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Funktionen fejler med KeyError hvis 'gemini' eller standardmodellen mangler i PRICING konfigurationen.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 17,
+      "severity": "warning",
+      "category": "style",
+      "message": "Funktionen 'loadUser' b\u00f8r defineres inde i useEffect eller wrappes i useCallback for at undg\u00e5 problemer med 'exhaustive-deps' og un\u00f8dvendige gen-definitioner.",
+      "auto_fixable": false,
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 26,
+      "severity": "info",
+      "category": "performance",
+      "message": "Brug af 'window.location.href' tvinger en fuld side-reload. I en SPA (React) b\u00f8r man bruge router-baseret navigation (f.eks. useNavigate) for bedre performance.",
+      "auto_fixable": false,
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 30,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Tom catch-blok uden logning. Fejl ved hentning af brugerdata b\u00f8r logges til debugging f\u00f8r redirect.",
+      "auto_fixable": false,
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 31,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Ubetinget redirect i catch-blokken kan skabe et uendeligt redirect-loop, hvis autentificerings-servicen er nede.",
+      "auto_fixable": false,
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 74,
+      "severity": "info",
+      "category": "style",
+      "message": "Un\u00f8dvendig anonym funktion. Du kan sende state-setteren direkte.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "<UploadForm onTranscribed={(t) => setTranscription(t)} />",
+        "new": "<UploadForm onTranscribed={setTranscription} />"
+      },
+      "file": "src/components/AppClient.tsx"
+    },
+    {
+      "line": 16,
+      "severity": "warning",
+      "category": "performance",
+      "message": "useEffect mangler afh\u00e6ngigheden 'loadUser'. Da 'loadUser' er defineret i komponentens scope, b\u00f8r den enten inkluderes i dependency arrayet (pakket ind i useCallback) eller flyttes ind i useEffect for at undg\u00e5 potentielle bugs ved re-renders.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 24,
+      "severity": "error",
+      "category": "security",
+      "message": "Direkte tildeling af en prop (basePath) til window.location.href kan muligg\u00f8re Open Redirect angreb eller XSS (hvis basePath indeholder 'javascript:').",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 28,
+      "severity": "info",
+      "category": "error_handling",
+      "message": "Tom catch-blok undertrykker API-fejl uden logning, hvilket g\u00f8r fejlfinding besv\u00e6rlig.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    } catch {",
+        "new": "    } catch (error) {\n      console.error('Kunne ikke hente brugerdata:', error);"
+      },
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 53,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Opdatering af 'selectedTranscription' via onUpdate opdaterer kun den lokale visning, men synkroniserer ikke n\u00f8dvendigvis \u00e6ndringen tilbage til 'HistoryList', hvilket kan f\u00f8re til stale data i oversigten.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 83,
+      "severity": "error",
+      "category": "bug",
+      "message": "Error-state blokerer for visning af hele listen. Hvis en sletning fejler, forsvinder listen og erstattes af en fejlmeddelelse, selvom der er eksisterende data. Dette modstrider kommentaren p\u00e5 linje 49.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "if (error) {",
+        "new": "if (error && transcriptions.length === 0) {"
+      },
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 53,
+      "severity": "warning",
+      "category": "performance",
+      "message": "setTimeout mangler en cleanup-funktion. Hvis komponenten unmountes (f.eks. ved navigation) inden for 3 sekunder efter en fejl, vil setError blive kaldt p\u00e5 en unmounted komponent, hvilket kan f\u00f8re til memory leaks.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 60,
+      "severity": "info",
+      "category": "performance",
+      "message": "Hj\u00e6lpefunktionen 'formatDate' defineres inde i komponenten og genskabes ved hver render. B\u00f8r flyttes uden for komponenten da den ikke afh\u00e6nger af state.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 70,
+      "severity": "info",
+      "category": "performance",
+      "message": "Hj\u00e6lpefunktionen 'truncateText' defineres inde i komponenten og genskabes ved hver render. B\u00f8r flyttes uden for komponenten.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 44,
+      "severity": "warning",
+      "category": "bug",
+      "message": "State initialiseres direkte fra props (derived state). Hvis 'savedImages' \u00e6ndrer sig udefra, vil 'generations' state ikke blive opdateret.",
+      "auto_fixable": false,
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 48,
+      "severity": "info",
+      "category": "style",
+      "message": "Inkonsistent data: 'turn_number' hardcodes til 1 og 'created_at' efterlades tom ved mapping af savedImages, selvom historikken kan indeholde flere trin.",
+      "auto_fixable": false,
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 66,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Billedstil (selectedStyles) ignoreres ved redigering af eksisterende billeder (multi-turn), da stylePrefix kun tilf\u00f8jes hvis currentGeneration er null.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "const stylePrefix = selectedStyles.length > 0 && !currentGeneration",
+        "new": "const stylePrefix = selectedStyles.length > 0"
+      },
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 113,
+      "severity": "info",
+      "category": "error_handling",
+      "message": "Catch-blokken i handleDownload undertrykker den specifikke fejl, hvilket g\u00f8r fejlfinding vanskelig.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "} catch {",
+        "new": "} catch (err) {"
+      },
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 245,
+      "severity": "error",
+      "category": "performance",
+      "message": "At flytte elementer i 'generations' arrayet for at skifte visning er ineffektivt og \u00f8del\u00e6gger den kronologiske historik. Brug et separat state til 'activeImageId' i stedet.",
+      "auto_fixable": false,
+      "file": "src/components/ImageGenerator.tsx"
+    },
+    {
+      "line": 28,
+      "severity": "error",
+      "category": "bug",
+      "message": "URL-konstruktion er fejlbeh\u00e6ftet; manglende separator mellem basePath og 'app' vil resultere i en forkert sti, hvis basePath ikke slutter med '/' (f.eks. '/authapp' i stedet for '/auth/app').",
+      "auto_fixable": true,
+      "fix": {
+        "old": "window.location.href = `${basePath}app`;",
+        "new": "window.location.href = `${basePath.endsWith('/') ? basePath : basePath + '/'}app`;"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 30,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Direkte eksponering af tekniske fejlmeddelelser via 'err.message' kan l\u00e6kke systemdetaljer og give en d\u00e5rlig brugeroplevelse. Overvej at mappe fejl til brugervenlige tekster.",
+      "auto_fixable": false,
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 38,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "handleSave re-thrower fejl, hvilket medf\u00f8rer en 'unhandled promise rejection', n\u00e5r funktionen kaldes direkte fra en onClick handler (linje 183).",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 33,
+      "severity": "warning",
+      "category": "performance",
+      "message": "setTimeout bliver ikke ryddet op. Dette kan f\u00f8re til state-opdateringer p\u00e5 komponenter, der er blevet fjernet fra DOM'en (memory leaks).",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 16,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Komponentens state initialiseres kun ved mount. Hvis 'guide' proppen \u00e6ndrer sig eksternt, vil formularen ikke opdatere sine felter.",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 71,
+      "severity": "info",
+      "category": "performance",
+      "message": "handleSetDefault mangler en loading-tilstand (saving), hvilket g\u00f8r det muligt for brugeren at klikke flere gange under den asynkrone operation.",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 50,
+      "severity": "info",
+      "category": "performance",
+      "message": "handleGenerate kalder handleSave, som trigger onUpdate. Herefter kalder handleGenerate onUpdate igen. Dette f\u00f8rer til un\u00f8dvendige re-renders i parent komponenten.",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 1,
+      "severity": "info",
+      "category": "style",
+      "message": "Filen er navngivet .tsx og indeholder TypeScript/React, men er fejlagtigt kategoriseret som Python i projektbeskrivelsen.",
+      "auto_fixable": false,
+      "file": "src/components/StyleGuideEditor.tsx"
+    },
+    {
+      "line": 22,
+      "severity": "error",
+      "category": "bug",
+      "message": "Local state synkroniseres med props i en useEffect med for mange dependecies. Hvis 'transcription' objektet opdateres fra en ekstern kilde (f.eks. en websocket eller parent re-render), vil brugerens igangv\u00e6rende (ugemte) \u00e6ndringer i tekstfeltet blive overskrevet.",
+      "auto_fixable": false,
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 54,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Fejl ved hentning af stilguides ignoreres tavst. Dette g\u00f8r debugging sv\u00e6rt, hvis API'et fejler.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "} catch {",
+        "new": "} catch (err) { console.error('Fejl ved hentning af stilguides:', err);"
+      },
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 71,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Fejl ved hentning af billeder ignoreres tavst. Brugeren f\u00e5r ingen indikation om, hvorfor deres gemte billeder evt. ikke vises.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "} catch {",
+        "new": "} catch (err) { console.error('Fejl ved hentning af billeder:', err);"
+      },
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 113,
+      "severity": "info",
+      "category": "style",
+      "message": "'document.execCommand('copy')' er for\u00e6ldet (deprecated). navigator.clipboard API'et b\u00f8r anvendes som prim\u00e6r metode uden fallback til execCommand i moderne web apps.",
+      "auto_fixable": false,
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 137,
+      "severity": "warning",
+      "category": "security",
+      "message": "<audio> taggets 'src' peger direkte p\u00e5 en API-rute. Hvis API'et kr\u00e6ver Authorization-header (JWT), vil browseren fejle med en 401, da headers ikke kan sendes via src-attributten.",
+      "auto_fixable": false,
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 253,
+      "severity": "performance",
+      "category": "performance",
+      "message": "Der laves en .map() operation p\u00e5 'savedImages' direkte i render-passet/props. Dette skaber en ny array-reference ved hver render, hvilket kan trigge un\u00f8dvendige re-renders af ImageGenerator komponenten.",
+      "auto_fixable": false,
+      "file": "src/components/TranscriptionView.tsx"
+    },
+    {
+      "line": 17,
+      "severity": "error",
+      "category": "bug",
+      "message": "ReferenceError: 'loadSummary' kaldes i useEffect f\u00f8r den er defineret. Da det er en const arrow function, bliver den ikke hoisted.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  useEffect(() => {\n    loadSummary();\n  }, []);\n\n  const loadSummary = async () => {",
+        "new": "  const loadSummary = async () => {\n    try {\n      const data = await getUsageSummary();\n      setSummary(data);\n    } catch (err) {\n      onError?.(err instanceof Error ? err.message : 'Kunne ikke hente forbrug');\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  useEffect(() => {\n    loadSummary();\n  }, []);"
+      },
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 32,
+      "severity": "info",
+      "category": "performance",
+      "message": "Intl.NumberFormat instansieres ved hvert kald af formatDKK. Flyt den uden for komponenten for bedre performance.",
+      "auto_fixable": false,
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 53,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Manglende validering af parseInt. Hvis 'm' ikke er numerisk (f.eks. ved fejl i API data), returneres 'undefined [year]'.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    const monthIdx = parseInt(m, 10) - 1;\n    if (monthIdx < 0 || monthIdx >= 12) return month;",
+        "new": "    const monthIdx = parseInt(m, 10) - 1;\n    if (isNaN(monthIdx) || monthIdx < 0 || monthIdx >= 12) return month;"
+      },
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 20,
+      "severity": "warning",
+      "category": "style",
+      "message": "loadSummary b\u00f8r pakkes i useCallback eller flyttes ind i useEffect for at undg\u00e5 advarsler fra React's exhaustive-deps linting rule.",
+      "auto_fixable": false,
+      "file": "src/components/UsageDisplay.tsx"
+    },
+    {
+      "line": 19,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Returnering af et tomt objekt '{}' ved status 204 kan for\u00e5rsage runtime-fejl, hvis kaldere forventer et array (f.eks. .map()) eller specifikke felter.",
+      "auto_fixable": false,
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 66,
+      "severity": "error",
+      "category": "bug",
+      "message": "Mangler 'await' ved res.json(). Uden await vil try/catch ikke fange fejl i JSON-parsing, da promise returneres f\u00f8r fejlen opst\u00e5r.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    return res.json();",
+        "new": "    return await res.json();"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 115,
+      "severity": "warning",
+      "category": "style",
+      "message": "Redundant fejlh\u00e5ndtering. Brug den eksisterende handleResponse funktion for konsistens og mindre kode.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  if (!res.ok) {\n    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));\n    throw new Error(error.detail);\n  }",
+        "new": "  return handleResponse(res);"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 126,
+      "severity": "warning",
+      "category": "style",
+      "message": "Redundant fejlh\u00e5ndtering. Brug handleResponse i stedet.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  if (!res.ok) {\n    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));\n    throw new Error(error.detail);\n  }",
+        "new": "  return handleResponse(res);"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 163,
+      "severity": "warning",
+      "category": "style",
+      "message": "Redundant fejlh\u00e5ndtering. Brug handleResponse i stedet.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  if (!res.ok) {\n    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));\n    throw new Error(error.detail);\n  }",
+        "new": "  return handleResponse(res);"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 243,
+      "severity": "info",
+      "category": "style",
+      "message": "Inkonsekvent URL-struktur: Trailing slash i '/images/' kan give problemer afh\u00e6ngig af server-konfiguration (301 redirect eller 404).",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  const res = await fetch(`${API_BASE}/images/?skip=${skip}&limit=${limit}`, {",
+        "new": "  const res = await fetch(`${API_BASE}/images?skip=${skip}&limit=${limit}`, {"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 249,
+      "severity": "warning",
+      "category": "style",
+      "message": "Redundant fejlh\u00e5ndtering. Brug handleResponse i stedet.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "  if (!res.ok) {\n    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));\n    throw new Error(error.detail);\n  }",
+        "new": "  return handleResponse(res);"
+      },
+      "file": "src/lib/api.ts"
+    }
+  ]
+}

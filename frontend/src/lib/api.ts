@@ -338,7 +338,7 @@ export function getImageDataUrl(id: number): string {
 }
 
 export async function getImageGenerations(skip = 0, limit = 20): Promise<ImageGenerationList> {
-  const res = await fetch(`${API_BASE}/images/?skip=${skip}&limit=${limit}`, {
+  const res = await fetch(`${API_BASE}/images?skip=${skip}&limit=${limit}`, {
     credentials: 'include',
   });
   return handleResponse<ImageGenerationList>(res);
