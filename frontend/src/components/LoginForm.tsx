@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { login, register } from '../lib/api';
 
 interface Props {
@@ -52,7 +52,7 @@ export default function LoginForm({ basePath }: Props) {
           <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
             <button
               type="button"
-              onClick={() => setIsLogin(true)}
+              onClick={() => { setIsLogin(true); setError(''); }}
               className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
                 isLogin
                   ? 'bg-white text-gray-900 shadow-sm'
@@ -63,7 +63,7 @@ export default function LoginForm({ basePath }: Props) {
             </button>
             <button
               type="button"
-              onClick={() => setIsLogin(false)}
+              onClick={() => { setIsLogin(false); setError(''); }}
               className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
                 !isLogin
                   ? 'bg-white text-gray-900 shadow-sm'

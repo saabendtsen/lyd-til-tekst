@@ -58,7 +58,7 @@ export default function HistoryClient({ basePath }: Props) {
         {selectedTranscription ? (
           <TranscriptionView
             transcription={selectedTranscription}
-            onUpdate={(updated) => setSelectedTranscription(updated)}
+            onUpdate={setSelectedTranscription}
             onBack={() => setSelectedTranscription(null)}
           />
         ) : (
@@ -72,7 +72,7 @@ export default function HistoryClient({ basePath }: Props) {
               </p>
             </div>
 
-            <HistoryList onSelect={(t) => setSelectedTranscription(t)} />
+            <HistoryList onSelect={setSelectedTranscription} />
           </div>
         )}
       </main>

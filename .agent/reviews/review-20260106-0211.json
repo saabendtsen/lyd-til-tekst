@@ -1,0 +1,381 @@
+{
+  "timestamp": "2026-01-06T02:11:09.968428",
+  "project": "lyd-til-tekst",
+  "commit": "dca4ef3f9b3c6f9cf472676ed6af89009ae2622e",
+  "previous_commit": "ccd46e056accf1c5f6d2e3c7d187a0d4b897c0b6",
+  "files_reviewed": 8,
+  "summary": {
+    "total_issues": 38,
+    "auto_fixable": 13,
+    "by_severity": {
+      "error": 5,
+      "warning": 18,
+      "info": 15
+    },
+    "by_category": {
+      "error_handling": 7,
+      "style": 12,
+      "security": 7,
+      "performance": 8,
+      "bug": 4
+    }
+  },
+  "issues": [
+    {
+      "line": 43,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Potentiale for unhandled exceptions fra decode_token. JWT-biblioteker kaster typisk exceptions (f.eks. ExpiredSignatureError) fremfor at returnere None. Hvis disse ikke fanges, vil servicen returnere en 500 error i stedet for 401.",
+      "auto_fixable": false,
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 91,
+      "severity": "info",
+      "category": "style",
+      "message": "Redundant logik. _validate_token_and_get_user med raise_on_error=True kaster allerede den pr\u00e6cis samme HTTPException hvis user er None. Tjekket er kun n\u00f8dvendigt for type-narrowing (MyPy), men kan g\u00f8res mere elegant.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    if user is None:\n        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=\"Bruger ikke fundet\")",
+        "new": "    # User er garanteret ikke None pga. raise_on_error=True"
+      },
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 86,
+      "severity": "warning",
+      "category": "security",
+      "message": "Brug af Cookies til autentificering uden eksplicit CSRF-beskyttelse. Hvis denne service tilg\u00e5s fra en browser, b\u00f8r der implementeres anti-CSRF tokens eller 'SameSite' restriktioner p\u00e5 cookie-s\u00e6tteren.",
+      "auto_fixable": false,
+      "file": "src/auth/deps.py"
+    },
+    {
+      "line": 17,
+      "severity": "warning",
+      "category": "security",
+      "message": "Manglende max_length p\u00e5 password feltet. Lange strenge (f.eks. > 1000 tegn) kan bruges til DoS-angreb via CPU-exhaustion under hashing, og Bcrypt trunkerer typisk ved 72 tegn.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "password: str = Field(..., min_length=12)",
+        "new": "password: str = Field(..., min_length=12, max_length=72)"
+      },
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 47,
+      "severity": "info",
+      "category": "performance",
+      "message": "Redundante database-opslag. Der tjekkes manuelt for eksisterende brugernavn og email, selvom IntegrityError blokken ved commit h\u00e5ndterer det samme. Dette resulterer i ekstra round-trips til databasen.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 70,
+      "severity": "info",
+      "category": "performance",
+      "message": "db.refresh(user) er un\u00f8dvendig her. SQLAlchemy udf\u00f8rer automatisk et nyt opslag ved adgang til attributter efter commit, og de n\u00f8dvendige data er allerede i sessionen.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "        db.refresh(user)",
+        "new": ""
+      },
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 78,
+      "severity": "warning",
+      "category": "security",
+      "message": "Hardcoded 'secure=True' i set_cookie forhindrer auth-cookies i at virke p\u00e5 localhost under udvikling (medmindre der bruges HTTPS proxy). B\u00f8r konfigureres via milj\u00f8variable.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 91,
+      "severity": "warning",
+      "category": "security",
+      "message": "Hardcoded dummy hash til timing-attack mitigation. Hvis hash-algoritmen eller rounds \u00e6ndres i utils.py, vil denne dummy-hash ikke l\u00e6ngere matche tidsforbruget, hvilket g\u00f8r beskyttelsen ineffektiv.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 68,
+      "severity": "warning",
+      "category": "security",
+      "message": "Prompt injection risiko: Brugerinput (examples) inds\u00e6ttes direkte i prompten uden sanitering eller delimiters, hvilket kan tillade en bruger at overskrive systemets instruktioner.",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 84,
+      "severity": "warning",
+      "category": "performance",
+      "message": "genai.Client instansieres inde i funktionen. Dette skaber un\u00f8dig overhead ved hvert API-kald (TCP/SSL handshake). Klienten b\u00f8r genbruges (singleton eller dependency injection).",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 101,
+      "severity": "info",
+      "category": "error_handling",
+      "message": "H\u00e5ndtering af sikkerhedsfiltre via ValueError er korrekt for Gemini SDK, men logning af den specifikke \u00e5rsag mangler for at hj\u00e6lpe med debugging af afviste prompts.",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 117,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Bred 'except Exception' fanger alle fejl (inkl. netv\u00e6rksfejl og timeouts). Det anbefales at logge stack trace med logger.exception() i stedet for kun str(e), s\u00e5 fejl\u00e5rsagen kan identificeres.",
+      "auto_fixable": false,
+      "file": "src/settings/style_generator.py"
+    },
+    {
+      "line": 44,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Silent fallback til 'whisper-1' og hardkodet pris ved manglende model-konfiguration kan f\u00f8re til fejl i afregning. B\u00f8r kaste en KeyError eller ValueError hvis model ikke findes.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 63,
+      "severity": "warning",
+      "category": "style",
+      "message": "DRY violation: Prisdata er duplikeret b\u00e5de i PRICING dict og som lokal variabel 'default_pricing'. Dette g\u00f8r vedligeholdelse fejlbeh\u00e6ftet.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 64,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Logikken tillader ukendte modeller at bruge standardpriser uden advarsel, hvilket kan skjule fejl i kaldet.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 95,
+      "severity": "warning",
+      "category": "style",
+      "message": "DRY violation: 'default_image_pricing' duplikerer v\u00e6rdier fra den globale PRICING konfiguration.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 101,
+      "severity": "warning",
+      "category": "error_handling",
+      "message": "Fallback til 'gemini-3-pro-image-preview' (som er en preview model) som default er risikabelt for en produktionsservice.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 4,
+      "severity": "info",
+      "category": "style",
+      "message": "Valutakurs er hardkodet. B\u00f8r hentes fra en milj\u00f8variabel eller en ekstern service for at sikre n\u00f8jagtighed over tid.",
+      "auto_fixable": false,
+      "file": "src/utils/cost_calculator.py"
+    },
+    {
+      "line": 14,
+      "severity": "warning",
+      "category": "bug",
+      "message": "useEffect mangler 'loadUser' (og indirekte 'basePath') i sit dependency array. Dette kan f\u00f8re til uventet adf\u00e6rd eller advarsler fra React-linteren.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 22,
+      "severity": "info",
+      "category": "style",
+      "message": "Redirect-logikken er duplikeret i b\u00e5de success-tjekket og catch-blokken. Dette b\u00f8r refaktoreres til en hj\u00e6lpefunktion for at sikre konsistens.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 45,
+      "severity": "error",
+      "category": "error_handling",
+      "message": "Hvis getMe() fejler og redirect-betingelsen ikke er opfyldt, ender brugeren p\u00e5 en tom hvid sk\u00e6rm uden fejlbesked eller feedback.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 55,
+      "severity": "info",
+      "category": "performance",
+      "message": "Un\u00f8dvendig inline arrow function. Du kan sende state-setteren direkte som reference.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "onUpdate={(updated) => setSelectedTranscription(updated)}",
+        "new": "onUpdate={setSelectedTranscription}"
+      },
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 69,
+      "severity": "info",
+      "category": "performance",
+      "message": "Un\u00f8dvendig inline arrow function i render; kan erstattes med direkte reference til setSelectedTranscription.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "onSelect={(t) => setSelectedTranscription(t)}",
+        "new": "onSelect={setSelectedTranscription}"
+      },
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 14,
+      "severity": "warning",
+      "category": "performance",
+      "message": "useEffect mangler 'loadTranscriptions' i sit dependency-array. Da 'loadTranscriptions' er defineret inde i komponenten, b\u00f8r den wrappes i 'useCallback' og tilf\u00f8jes som dependency for at undg\u00e5 potentielle bugs ved fremtidige \u00e6ndringer.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 49,
+      "severity": "error",
+      "category": "bug",
+      "message": "setTimeout bruges uden cleanup. Hvis komponenten unmountes inden for 3 sekunder, vil kaldet til 'setError' fors\u00f8ge at opdatere state p\u00e5 en ikke-eksisterende komponent, hvilket kan give hukommelsesl\u00e6kager og fejl.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 116,
+      "severity": "warning",
+      "category": "style",
+      "message": "Klikbart div-element mangler tilg\u00e6ngelighedsegenskaber. Brugere med tastaturnavigation kan ikke interagere med listen. Tilf\u00f8j 'role=\"button\"', 'tabIndex={0}' og en 'onKeyDown' handler.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "          className=\"card cursor-pointer hover:shadow-md transition-shadow\"",
+        "new": "          className=\"card cursor-pointer hover:shadow-md transition-shadow\" role=\"button\" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(t); }}"
+      },
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 18,
+      "severity": "info",
+      "category": "performance",
+      "message": "Hj\u00e6lpefunktionerne 'formatDate' og 'truncateText' defineres p\u00e5 hver render. De b\u00f8r flyttes uden for komponent-scopet for at optimere performance.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryList.tsx"
+    },
+    {
+      "line": 1,
+      "severity": "error",
+      "category": "bug",
+      "message": "'React' er ikke importeret, men bruges som namespace i 'React.FormEvent' p\u00e5 linje 16.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "import { useState } from 'react';",
+        "new": "import React, { useState } from 'react';"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 28,
+      "severity": "error",
+      "category": "security",
+      "message": "Potentiel 'Open Redirect' s\u00e5rbarhed. 'basePath' b\u00f8r valideres eller sanitizes f\u00f8r det bruges direkte i 'window.location.href', da det kan f\u00f8re til redirects til eksterne dom\u00e6ner.",
+      "auto_fixable": false,
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 28,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Brug af 'window.location.href' for\u00e5rsager et full page reload. I en React-applikation b\u00f8r man bruge en router (f.eks. 'useNavigate' fra react-router-dom) for at bevare state og performance.",
+      "auto_fixable": false,
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 55,
+      "severity": "info",
+      "category": "style",
+      "message": "Fejlbeskeder (error state) b\u00f8r nulstilles, n\u00e5r brugeren skifter mellem 'Log ind' og 'Opret konto'.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "onClick={() => setIsLogin(true)}",
+        "new": "onClick={() => { setIsLogin(true); setError(''); }}"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 66,
+      "severity": "info",
+      "category": "style",
+      "message": "Fejlbeskeder (error state) b\u00f8r nulstilles, n\u00e5r brugeren skifter mellem 'Log ind' og 'Opret konto'.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "onClick={() => setIsLogin(false)}",
+        "new": "onClick={() => { setIsLogin(false); setError(''); }}"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 19,
+      "severity": "error",
+      "category": "bug",
+      "message": "Returnering af et tomt objekt '{}' ved status 204 kan medf\u00f8re runtime-fejl, hvis kalderen forventer et array eller specifikke properties (f.eks. .length eller .map()).",
+      "auto_fixable": false,
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 7,
+      "severity": "warning",
+      "category": "security",
+      "message": "Hardcoded udviklings-URL 'http://localhost:8090/api'. Dette b\u00f8r konfigureres via milj\u00f8variabler (f.eks. import.meta.env.VITE_API_URL).",
+      "auto_fixable": false,
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 133,
+      "severity": "info",
+      "category": "style",
+      "message": "Duplikeret fejlh\u00e5ndtering. Brug handleResponse<void>(res) for at sikre konsistens og reducere redundans.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "if (!res.ok) {\n    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));\n    throw new Error(error.detail);\n  }",
+        "new": "return handleResponse<void>(res);"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 147,
+      "severity": "info",
+      "category": "style",
+      "message": "Duplikeret fejlh\u00e5ndtering. Brug handleResponse<void>(res) for at sikre konsistens.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "if (!res.ok) {\n    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));\n    throw new Error(error.detail);\n  }",
+        "new": "return handleResponse<void>(res);"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 208,
+      "severity": "info",
+      "category": "style",
+      "message": "Duplikeret fejlh\u00e5ndtering. Brug handleResponse<void>(res) for at sikre konsistens.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "if (!res.ok) {\n    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));\n    throw new Error(error.detail);\n  }",
+        "new": "return handleResponse<void>(res);"
+      },
+      "file": "src/lib/api.ts"
+    },
+    {
+      "line": 319,
+      "severity": "info",
+      "category": "style",
+      "message": "Duplikeret fejlh\u00e5ndtering. Brug handleResponse<void>(res) for at sikre konsistens.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "if (!res.ok) {\n    const error: ApiError = await res.json().catch(() => ({ detail: 'Ukendt fejl' }));\n    throw new Error(error.detail);\n  }",
+        "new": "return handleResponse<void>(res);"
+      },
+      "file": "src/lib/api.ts"
+    }
+  ]
+}
