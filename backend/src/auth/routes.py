@@ -20,7 +20,7 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     username: str
-    password: str
+    password: str = Field(..., max_length=72)
 
 
 class UserResponse(BaseModel):

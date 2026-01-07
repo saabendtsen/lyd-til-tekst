@@ -1,0 +1,156 @@
+{
+  "timestamp": "2026-01-07T02:05:57.470072",
+  "project": "lyd-til-tekst",
+  "commit": "aec5b14b681c0c040aaff02562930c8ca5c9976a",
+  "previous_commit": "dca4ef3f9b3c6f9cf472676ed6af89009ae2622e",
+  "files_reviewed": 3,
+  "summary": {
+    "total_issues": 14,
+    "auto_fixable": 5,
+    "by_severity": {
+      "error": 2,
+      "warning": 8,
+      "info": 4
+    },
+    "by_category": {
+      "security": 5,
+      "performance": 2,
+      "style": 2,
+      "bug": 5
+    }
+  },
+  "issues": [
+    {
+      "line": 29,
+      "severity": "error",
+      "category": "security",
+      "message": "LoginRequest password mangler max_length. En angriber kan sende en ekstremt lang streng (f.eks. flere MB) for at for\u00e5rsage Denial of Service (DoS) via massivt CPU-forbrug under hashing.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "    password: str",
+        "new": "    password: str = Field(..., max_length=72)"
+      },
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 44,
+      "severity": "info",
+      "category": "performance",
+      "message": "Redundante database-opslag. Der laves to separate queries for at tjekke username og email. Dette b\u00f8r samles i \u00e9t query med en OR-betingelse for at reducere latency.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 80,
+      "severity": "warning",
+      "category": "security",
+      "message": "Hardcoded 'secure=True' i set_cookie vil forhindre cookies i at blive sendt over HTTP, hvilket g\u00f8r lokal udvikling uden HTTPS umulig. B\u00f8r styres via en konfiguration/milj\u00f8variabel.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 98,
+      "severity": "warning",
+      "category": "security",
+      "message": "Hardcoded dummy hash til timing-attack beskyttelse er s\u00e5rbar. Hvis hash-algoritmen (bcrypt) eller cost-factor \u00e6ndres i utils.py, vil dette dummy-tjek tage kortere/l\u00e6ngere tid end et rigtigt tjek og dermed l\u00e6kke bruger-eksistens.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 48,
+      "severity": "info",
+      "category": "security",
+      "message": "Specifikke fejlbeskeder ved registrering ('Brugernavnet er allerede taget') muligg\u00f8r User Enumeration. Overvej generiske beskeder hvis h\u00f8j sikkerhed kr\u00e6ves.",
+      "auto_fixable": false,
+      "file": "src/auth/routes.py"
+    },
+    {
+      "line": 17,
+      "severity": "warning",
+      "category": "style",
+      "message": "useEffect mangler 'loadUser' i sit dependency-array. Da 'loadUser' er defineret inde i komponenten, b\u00f8r den enten flyttes ind i useEffect eller wrappes i useCallback for at undg\u00e5 potentielle bugs ved fremtidige \u00e6ndringer.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 28,
+      "severity": "warning",
+      "category": "performance",
+      "message": "Brug af 'window.location.href' i en React SPA medf\u00f8rer en fuld genindl\u00e6sning af siden. Det anbefales at bruge en router-baseret navigation (f.eks. useNavigate fra react-router-dom) for at bevare applikationens state og performance.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 28,
+      "severity": "error",
+      "category": "bug",
+      "message": "Risiko for uendeligt redirect-loop: Hvis 'basePath' peger p\u00e5 den aktuelle sti (f.eks. '/') og brugeren ikke er logget ind, vil siden redirecte til sig selv i en uendelig l\u00f8kke.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 35,
+      "severity": "info",
+      "category": "style",
+      "message": "Duplikeret kode: Redirect-logikken og sikkerhedstjekket af 'basePath' er identisk i b\u00e5de try- og catch-blokken. Dette b\u00f8r refaktoreres til en hj\u00e6lpefunktion.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 74,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Potentiel state-synkroniseringsfejl: 'HistoryList' modtager ingen props og har sandsynligvis sit eget interne state. \u00c6ndringer foretaget i 'TranscriptionView' via 'onUpdate' vil ikke v\u00e6re synlige i listen, n\u00e5r man g\u00e5r tilbage, medmindre listen tvinges til at genindl\u00e6se data.",
+      "auto_fixable": false,
+      "file": "src/components/HistoryClient.tsx"
+    },
+    {
+      "line": 30,
+      "severity": "warning",
+      "category": "security",
+      "message": "Direkte visning af fejlbeskeder fra API'en (err.message) kan l\u00e6kke f\u00f8lsom information om systemets arkitektur eller database. Brug en generisk fejlbesked til slutbrugeren.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "setError(err instanceof Error ? err.message : 'Der opstod en fejl');",
+        "new": "setError('Der opstod en fejl under fors\u00f8get. Kontroller venligst dine oplysninger og pr\u00f8v igen.');"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 53,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Faner b\u00f8r deaktiveres n\u00e5r loading er true. Et skift mellem login og opret-tilstand under en igangv\u00e6rende anmodning kan f\u00f8re til inkonsistent UI og logiske fejl.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "onClick={() => { setIsLogin(true); setError(''); }}",
+        "new": "onClick={() => { if (!loading) { setIsLogin(true); setError(''); } }}"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 63,
+      "severity": "warning",
+      "category": "bug",
+      "message": "Faner b\u00f8r deaktiveres n\u00e5r loading er true for at forhindre tilstands\u00e6ndring under asynkron k\u00f8rsel.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "onClick={() => { setIsLogin(false); setError(''); }}",
+        "new": "onClick={() => { if (!loading) { setIsLogin(false); setError(''); } }}"
+      },
+      "file": "src/components/LoginForm.tsx"
+    },
+    {
+      "line": 23,
+      "severity": "info",
+      "category": "bug",
+      "message": "Brugernavnet b\u00f8r trimmes f\u00f8r det sendes til API'en for at undg\u00e5 fejl ved utilsigtede mellemrum.",
+      "auto_fixable": true,
+      "fix": {
+        "old": "await login(username, password);",
+        "new": "await login(username.trim(), password);"
+      },
+      "file": "src/components/LoginForm.tsx"
+    }
+  ]
+}

@@ -27,7 +27,7 @@ export default function LoginForm({ basePath }: Props) {
       // Redirect to app
       window.location.href = `${basePath.endsWith('/') ? basePath : basePath + '/'}app`;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Der opstod en fejl');
+      setError('Der opstod en fejl. Kontroller venligst dine oplysninger og prøv igen.');
     } finally {
       setLoading(false);
     }
@@ -52,23 +52,25 @@ export default function LoginForm({ basePath }: Props) {
           <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
             <button
               type="button"
-              onClick={() => { setIsLogin(true); setError(''); }}
+              onClick={() => { if (!loading) { setIsLogin(true); setError(''); } }}
+              disabled={loading}
               className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
                 isLogin
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+              } ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               Log ind
             </button>
             <button
               type="button"
-              onClick={() => { setIsLogin(false); setError(''); }}
+              onClick={() => { if (!loading) { setIsLogin(false); setError(''); } }}
+              disabled={loading}
               className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
                 !isLogin
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+              } ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               Opret konto
             </button>
