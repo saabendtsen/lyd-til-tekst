@@ -27,7 +27,6 @@ class User(Base):
     transcriptions = relationship("Transcription", back_populates="user")
     style_guides = relationship("StyleGuide", back_populates="user")
     api_usage = relationship("ApiUsage", back_populates="user")
-    image_generations = relationship("ImageGeneration", back_populates="user")
 
 
 class Transcription(Base):
@@ -92,7 +91,7 @@ class ImageGeneration(Base):
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="image_generations")
+    # Note: User relationship removed - table preserved for historical data
 
 
 class ApiUsage(Base):

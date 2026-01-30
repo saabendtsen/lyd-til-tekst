@@ -14,12 +14,6 @@ PRICING = {
         "gemini-2.0-flash": {
             "input_per_million": 0.10,   # $0.10 per million input tokens
             "output_per_million": 0.40   # $0.40 per million output tokens
-        },
-        "gemini-3-pro-image-preview": {
-            "input_per_million": 2.00,   # $2.00 per million input tokens
-            "output_per_million": 12.00, # $12.00 per million output tokens
-            "image_output_1k_2k": 0.134, # $0.134 per 1K/2K image (1120 tokens)
-            "image_output_4k": 0.24      # $0.24 per 4K image
         }
     }
 }
@@ -69,52 +63,6 @@ def calculate_gemini_cost(
     input_cost = (max(0, input_tokens) / 1_000_000) * pricing.get("input_per_million", 0.10)
     output_cost = (max(0, output_tokens) / 1_000_000) * pricing.get("output_per_million", 0.40)
     return input_cost + output_cost
-
-
-def calculate_image_generation_cost(
-    input_tokens: int = 0,
-    output_tokens: int = 0,
-    images_generated: int = 0,
-    resolution: str = "2k",  # "1k", "2k", or "4k"
-    model: str = "gemini-3-pro-image-preview"
-) -> float:
-    """
-    Calculate Gemini image generation cost.
-
-    Args:
-        input_tokens: Number of input tokens (prompt)
-        output_tokens: Number of output tokens (text response)
-        images_generated: Number of images generated
-        resolution: Image resolution ("1k", "2k", or "4k")
-        model: Model name
-
-    Returns:
-        Cost in USD
-    """
-    gemini_pricing = PRICING.get("gemini", {})
-    default_image_pricing = {
-        "input_per_million": 2.00,
-        "output_per_million": 12.00,
-        "image_output_1k_2k": 0.134,
-        "image_output_4k": 0.24
-    }
-    pricing = gemini_pricing.get(model, gemini_pricing.get("gemini-3-pro-image-preview", default_image_pricing))
-
-    # Text token costs (ensure non-negative)
-    input_cost = (max(0, input_tokens) / 1_000_000) * pricing.get("input_per_million", 2.00)
-    output_cost = (max(0, output_tokens) / 1_000_000) * pricing.get("output_per_million", 12.00)
-
-    # Image output cost (only for image-capable models)
-    image_cost = 0.0
-    if images_generated > 0:
-        if resolution == "4k":
-            image_cost = images_generated * pricing.get("image_output_4k", 0.24)
-        elif resolution in ("1k", "2k"):
-            image_cost = images_generated * pricing.get("image_output_1k_2k", 0.134)
-        else:
-            raise ValueError(f"Invalid resolution: {resolution}. Must be '1k', '2k', or '4k'.")
-
-    return input_cost + output_cost + image_cost
 
 
 def get_exchange_rate() -> float:

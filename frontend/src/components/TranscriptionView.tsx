@@ -2,15 +2,12 @@ import { useState, useEffect } from 'react';
 import {
   type Transcription,
   type StyleGuide,
-  type ImageGeneration,
   updateTranscription,
   processTranscription,
   getAudioUrl,
   deleteAudio,
   getStyleGuides,
-  getImagesForTranscription,
 } from '../lib/api';
-import ImageGenerator from './ImageGenerator';
 
 interface Props {
   transcription: Transcription;
@@ -41,8 +38,6 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
   const [hasAudio, setHasAudio] = useState(transcription.has_audio);
   const [styleGuides, setStyleGuides] = useState<StyleGuide[]>([]);
   const [selectedStyleGuideId, setSelectedStyleGuideId] = useState<number | undefined>();
-  const [showImageGenerator, setShowImageGenerator] = useState(false);
-  const [savedImages, setSavedImages] = useState<ImageGeneration[]>([]);
 
   // Load style guides on mount
   useEffect(() => {
@@ -61,23 +56,6 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
     };
     loadStyleGuides();
   }, []);
-
-  // Load saved images for this transcription
-  useEffect(() => {
-    const loadImages = async () => {
-      try {
-        const images = await getImagesForTranscription(transcription.id);
-        setSavedImages(images);
-        // Auto-show image generator if there are saved images
-        if (images.length > 0) {
-          setShowImageGenerator(true);
-        }
-      } catch {
-        // Ignore errors - images are optional
-      }
-    };
-    loadImages();
-  }, [transcription.id]);
 
   const handleRawTextChange = (value: string) => {
     setRawText(value);
@@ -377,44 +355,9 @@ export default function TranscriptionView({ transcription, onUpdate, onBack }: P
           <div className="bg-gray-50 rounded-lg p-4 whitespace-pre-wrap text-gray-800">
             {processedText}
           </div>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-gray-500">
-              Prøv en anden instruks for at få et andet resultat
-            </p>
-            <button
-              onClick={() => setShowImageGenerator(!showImageGenerator)}
-              className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              {showImageGenerator ? 'Skjul billede' : 'Generer billede'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Image Generator */}
-      {processedText && showImageGenerator && (
-        <div className="card">
-          <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Generer billede fra tekst
-          </h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Beskriv det billede du ønsker baseret på den bearbejdede tekst. Du kan iterere og lave ændringer.
+          <p className="mt-3 text-xs text-gray-500">
+            Prøv en anden instruks for at få et andet resultat
           </p>
-          <ImageGenerator
-            initialPrompt={processedText}
-            transcriptionId={transcription.id}
-            savedImages={savedImages.map(img => ({
-              id: img.id,
-              prompt: img.prompt,
-              image_url: img.image_url
-            }))}
-          />
         </div>
       )}
     </div>

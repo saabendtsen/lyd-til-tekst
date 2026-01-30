@@ -10,7 +10,6 @@ from .auth.routes import router as auth_router
 from .transcription.routes import router as transcription_router
 from .settings.routes import router as settings_router
 from .usage.routes import router as usage_router
-from .images.routes import router as images_router
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -54,7 +53,6 @@ app.include_router(auth_router)
 app.include_router(transcription_router)
 app.include_router(settings_router)
 app.include_router(usage_router)
-app.include_router(images_router)
 
 
 @app.get("/api/health")
